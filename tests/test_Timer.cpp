@@ -19,14 +19,12 @@ struct MyObserver {
 
 int main() {
     EventLoop el;
-
     MyObserver mo;
-    el << new Timer<MyObserver>( &mo, 1 );
 
-    PRINT( SIGINT );
-    PRINT( SIGQUIT );
     int sigs[] = { SIGINT, SIGQUIT, SIGKILL, -1 };
     el << new Signal<MyObserver>( &mo, sigs );
+    
+    el << new Timer<MyObserver>( &mo, 1 );
 
     return el.run();
 }

@@ -35,7 +35,7 @@ bool SignalAncestor::inp() {
             return false;
         }
 
-        if ( signal( sig_info.ssi_code ) ) {
+        if ( signal( sig_info.ssi_signo ) ) {
             ev_loop->stop();
             return true;
         }
