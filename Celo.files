@@ -18,10 +18,7 @@ src/Celo/Listener.h
 src/Celo/Listener.cpp
 src/Celo/HttpRequest.h
 src/Celo/HttpRequest.cpp
-src/Celo/ReqState.h
-src/Celo/ReqState.cpp
-src/Celo/ReqState_NextSpace.h
-src/Celo/ReqState_NextSpace.cpp
 src/Celo/StringBlk.h
 src/Celo/StringBlk.cpp
 src/Celo/ErrorCodes.h
+src/Celo/HttpRequest.py
