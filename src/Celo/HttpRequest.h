@@ -22,8 +22,16 @@ public:
           READ_REQ_TYPE_PO, READ_REQ_TYPE_POS, READ_REQ_TYPE_POST, READ_REQ_TYPE_POST_,
           READ_REQ_TYPE_PU, READ_REQ_TYPE_PUT, READ_REQ_TYPE_PUT_,
 
+        READ_REQ_TYPE_URL,
         READ_REQ_BEG_ERR // must be at the end
     } ProcNum;
+
+    typedef enum {
+        GET,
+        POST,
+        PUT,
+        DELETE
+    } ReqType;
 
     HttpRequest( int fd );
     virtual ~HttpRequest();
@@ -41,6 +49,7 @@ protected:
     #undef ERR
 
     ProcNum cur_proc; ///< current reading / writing procedure
+    ReqType req_type;
     std::string tmp;  ///< used in procs
 };
 
