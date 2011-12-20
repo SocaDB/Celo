@@ -5,8 +5,13 @@ class Op:
         self.string = string
         self.action = action
         self.nextop = []
+        self.num_op = -1
 
 def singlify_chars( c ):
+    global cur_op
+    if c.num_op == cur_op:
+        return
+        
     if len( c.string ) > 1:
         t = Op( c.string[ 1: ], c.action )
         c.string = c.string[ 0 ]
@@ -17,6 +22,10 @@ def singlify_chars( c ):
         singlify_chars( n )
 
 def commonify_chars( c ):
+    global cur_op
+    if c.num_op == cur_op:
+        return
+
     letters = {}
     for n in c.nextop:
         if n.string in letters:
@@ -35,11 +44,15 @@ def commonify_chars( c ):
     c.nextop = nextop
     
 
-def set_num( op ):
+def set_num( c ):
+    global cur_op
+    if c.num_op == cur_op:
+        return
+        
     global num_op
-    op.num = num_op
+    c.num = num_op
     num_op += 1
-    for n in op.nextop:
+    for n in c.nextop:
         set_num( n )
     
 def write_dot( f, op ):
@@ -53,8 +66,15 @@ def display_dot( f, op ):
     write_dot( f, op )
     f.write( "}\n" )
 
-def write_code( f, op ):
-    #f.write( "    if ( *data == '" + op.string + "' )" )
+def write_code( f, c ):
+    f.write( "label_" + str( c.num ) + ":\n" )
+    if len( c.action ):
+        f.write( "    { " + c.action + " }\n" )
+    for n in c.nextop:
+        f.write( "    if ( *data == '" + n.string + "' ) goto label_" + str( n.num ) + ";\n" )
+    f.write( "    ERROR();\n" )
+    for n in c.nextop:
+        write_code( f, n )
 
 root = Op( "", "" )
 beg  = Op( "BEG " , "req_type = BEG;"  )
@@ -62,6 +82,7 @@ put  = Op( "PUT " , "req_type = PUT;"  )
 post = Op( "POST ", "req_type = POST;" )
 root.nextop = [ beg, put, post ]
 
+cur_op = 0
 singlify_chars( root )
 commonify_chars( root )
 
