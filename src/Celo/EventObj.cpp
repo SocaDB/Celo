@@ -34,6 +34,9 @@ void EventObj::err() {
 void EventObj::hup() {
 }
 
+void EventObj::rdy() {
+}
+
 bool EventObj::send( const char *data, ST size, bool end ) {
     return false;
 }

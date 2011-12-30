@@ -1,11 +1,16 @@
+from operator import attrgetter
 import os, sys
 
 class Op:
-    def __init__( self, string, action ):
+    def __init__( self, string, action, probab = 1 ):
         self.string = string
         self.action = action
+        self.probab = probab
         self.nextop = []
         self.num_op = -1
+
+    def sortop( self ):
+        self.nextop.sort( key = attrgetter('probab'), reverse = True )
 
 def singlify_chars( c ):
     global cur_op
@@ -38,8 +43,10 @@ def commonify_chars( c ):
         #print letter, number
         t = Op( letter, "" )
         nextop.append( t )
+        t.probab = 0
         for n in c.nextop:
             if n.string == letter:
+                t.probab += n.probab
                 t.nextop.extend( n.nextop )
     c.nextop = nextop
     
@@ -67,19 +74,23 @@ def display_dot( f, op ):
     f.write( "}\n" )
 
 def write_code( f, c ):
+    f.write( "label_" + str( c.num ) + "V:\n" )
+    f.write( "    if ( ++data >= end ) return READ_REQ_" + str( c.num ) + "\n" )
     f.write( "label_" + str( c.num ) + ":\n" )
     if len( c.action ):
         f.write( "    { " + c.action + " }\n" )
+    c.sortop()
     for n in c.nextop:
-        f.write( "    if ( *data == '" + n.string + "' ) goto label_" + str( n.num ) + ";\n" )
+        f.write( "    if ( *data == '" + n.string + "' ) goto label_" + str( n.num ) + "V;\n" )
     f.write( "    ERROR();\n" )
     for n in c.nextop:
         write_code( f, n )
 
 root = Op( "", "" )
-beg  = Op( "BEG " , "req_type = BEG;"  )
-put  = Op( "PUT " , "req_type = PUT;"  )
-post = Op( "POST ", "req_type = POST;" )
+beg  = Op( "BEG " , "req_type = BEG;" , 3 )
+put  = Op( "PUT " , "req_type = PUT;" , 1 )
+post = Op( "POST ", "req_type = POST;", 2 )
+#reqe = Op( "POST ", "req_type = POST;", 2 )
 root.nextop = [ beg, put, post ]
 
 cur_op = 0

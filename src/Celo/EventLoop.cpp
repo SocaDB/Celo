@@ -72,5 +72,7 @@ EventLoop &EventLoop::operator<<( class EventObj *ev_obj ) {
     ev.data.ptr = ev_obj;
     if ( epoll_ctl( event_fd, EPOLL_CTL_ADD, ev_obj->fd, &ev ) == -1 )
         perror( "epoll_ctl add" );
+
+    ev_obj->rdy();
     return *this;
 }

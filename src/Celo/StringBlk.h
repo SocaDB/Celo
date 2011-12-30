@@ -24,9 +24,9 @@ public:
     ST   _tot;
 };
 
-std::ostream &operator<<( std::ostream &os, const StringBlk &s ) {
+inline std::ostream &operator<<( std::ostream &os, const StringBlk &s ) {
     ST tot = s._tot;
-    for( StringBlk::Item *item = &s._beg; tot; item = item->next( tot ) )
+    for( const StringBlk::Item *item = &s._beg; tot; item = item->next( tot ) )
         os.write( item->dat, item->loc );
     return os;
 }
