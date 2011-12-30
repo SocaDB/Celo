@@ -37,6 +37,7 @@ protected:
 
     int cur_proc; ///< current reading / writing procedure
     ReqType req_type;
+    const char *url;
     std::string tmp;  ///< used in procs
 };
 

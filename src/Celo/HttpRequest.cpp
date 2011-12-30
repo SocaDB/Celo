@@ -30,16 +30,13 @@ bool HttpRequest::inp() {
 }
 
 bool HttpRequest::out() {
-    PRINT( "out" );
     return false;
 }
 
 void HttpRequest::err() {
-    PRINT( "err" );
 }
 
 void HttpRequest::hup() {
-    PRINT( "hup" );
 }
 
 #define LAB( N ) \
@@ -62,8 +59,21 @@ LAB( 2 ): // GE
     if ( *data != 'T' ) return error_400();
 LAB( 3 ): // GET
     if ( *data != ' ' ) return error_400();
-    PRINT( "beg" );
     req_type = GET;
+
+LAB( 4 ): // url (beg)
+    url = data;
+    while ( true ) {
+        if ( ++data == end ) {
+            break;
+        }
+        if ( *data == ' ' ) {
+            *data = 0;
+            PRINT( url );
+            break;
+        }
+    }
+
     goto b_100;
 
 LAB( 10 ): // P
@@ -73,7 +83,6 @@ LAB( 10 ): // P
 b_100:
 
 
-    void *p = &l_0;
     return true;
 }
 
