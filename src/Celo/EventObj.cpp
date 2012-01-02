@@ -8,7 +8,7 @@ EventObj::EventObj( int fd ) : fd( fd ) {
 }
 
 EventObj::~EventObj() {
-    if ( fd >= 0 )
+    if ( fd > 0 )
         close( fd );
 }
 
@@ -38,6 +38,7 @@ void EventObj::rdy() {
 }
 
 bool EventObj::send( const char *data, ST size, bool end ) {
+    write( fd, data, size );
     return false;
 }
 

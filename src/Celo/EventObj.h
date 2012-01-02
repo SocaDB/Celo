@@ -11,8 +11,8 @@ public:
     EventObj( int fd );
     virtual ~EventObj();
 
-    virtual bool inp(); ///< if input data
-    virtual bool out(); ///< if ready for output
+    virtual bool inp(); ///< if input data. return true to signal the end of the request.
+    virtual bool out(); ///< if ready for output. return true to signal the end of the request.
     virtual void err(); ///< if error
     virtual void hup(); ///< if closed
     virtual void rdy(); ///< called after installation of this in event loop

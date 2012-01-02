@@ -22,3 +22,4 @@ src/Celo/StringBlk.h
 src/Celo/StringBlk.cpp
 src/Celo/ErrorCodes.h
 src/Celo/HttpRequest.py
+tests/test_HttpRequest.cpp

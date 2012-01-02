@@ -17,7 +17,11 @@ public:
         GET,
         POST,
         PUT,
-        DELETE
+        DELETE,
+        OPTIONS,
+        HEAD,
+        TRACE,
+        CONNECT
     } ReqType;
 
     HttpRequest( int fd );
@@ -29,16 +33,19 @@ public:
     virtual void hup(); ///< if closed
 
 protected:
-    bool inp( char *data, const char *end );
+    bool inp( char *data, const char *end ); ///< > 0 means continuation, < 0 means error, 0 means end
 
-    #define ERR( NUM, MSG ) bool error_##NUM();
+    #define ERR( NUM, MSG ) void error_##NUM();
     #include "ErrorCodes.h"
     #undef ERR
 
     int cur_proc; ///< current reading / writing procedure
     ReqType req_type;
-    const char *url;
-    std::string tmp;  ///< used in procs
+    char *url_dat;
+    int url_len; ///<
+    int url_res; ///< used only if continuation
+
+    friend void test_HttpRequest( const char *data );
 };
 
 #endif // HTTPREQUEST_H

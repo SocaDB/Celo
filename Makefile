@@ -1,7 +1,8 @@
-MCP = metil_comp --no-sep-libs -Isrc
-PRG = tests/test_Http.cpp
+MCP = metil_comp -g3 --no-sep-libs -Isrc
+PRG = tests/test_HttpRequest.cpp
+#--exec-using "valgrind --leak-check=full"
 
-all:
+all: gen
 	${MCP} -ne ${PRG}
 
 gen:
