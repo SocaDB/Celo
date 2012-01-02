@@ -51,17 +51,18 @@ bool HttpRequest::inp( char *data, const char *end ) {
 
 // ----------------- REQ -----------------
 l_0: //
+    // we have at least 4 bytes ?
     if ( end - data >= 4 ) {
         int val = *reinterpret_cast<const int *>( data );
 
         #ifdef __LITTLE_ENDIAN
-        if ( val == 0x20544547 ) { data += 3; req_type = GET; goto burl; } // "GET "
-        if ( val == 0x54534F50 ) { data += 3; goto b_POST; } // "POST"
-        if ( val == 0x20545550 ) { data += 3; req_type = PUT; goto burl; } // "PUT "
+        if ( val == 0x20544547 ) { data += 4; req_type = GET; goto bur_; } // "GET "
+        if ( val == 0x54534F50 ) { data += 4; goto b_POST; } // "POST"
+        if ( val == 0x20545550 ) { data += 4; req_type = PUT; goto bur_; } // "PUT "
         #else
-        if ( val == 0x47455420 ) { data += 3; req_type = GET; goto burl; } // "GET "
-        if ( val == 0x504F5354 ) { data += 3; goto b_POST; } // "POST"
-        if ( val == 0x50555420 ) { data += 3; req_type = PUT; goto burl; } // "PUT "
+        if ( val == 0x47455420 ) { data += 4; req_type = GET; goto bur_; } // "GET "
+        if ( val == 0x504F5354 ) { data += 4; goto b_POST; } // "POST"
+        if ( val == 0x50555420 ) { data += 4; req_type = PUT; goto bur_; } // "PUT "
         #endif
     }
 
@@ -85,7 +86,9 @@ l_3: // GET
 
 // ----------------- URL -----------------
 burl:
-    if ( ++data >= end ) goto c_39;
+    ++data;
+bur_:
+    if ( data >= end ) goto c_39;
 l_39: // URL, first call
     url_dat = data;
     while ( true ) {
@@ -135,8 +138,9 @@ l_5: // PO
     if ( ++data >= end ) goto c_6;
 l_6: // POS
     if ( *data != 'T' ) goto e_400;
+    ++data;
 b_POST:
-    if ( ++data >= end ) goto c_7;
+    if ( data >= end ) goto c_7;
 l_7: // POST
     if ( *data != ' ' ) goto e_400;
     req_type = POST;
