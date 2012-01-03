@@ -23,3 +23,5 @@ src/Celo/StringBlk.cpp
 src/Celo/ErrorCodes.h
 src/Celo/HttpRequest.py
 tests/test_HttpRequest.cpp
+src/Celo/EventObj_WO.h
+src/Celo/EventObj_WO.cpp

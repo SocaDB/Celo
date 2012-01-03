@@ -8,9 +8,10 @@
 class TimerAncestor : public EventObj {
 public:
     TimerAncestor( double delay );
-    virtual bool inp();
+    virtual void inp();
+    virtual bool end();
 
-    virtual bool timeout() = 0;
+    virtual void timeout() = 0;
 };
 
 
@@ -20,7 +21,7 @@ template<class ObjWithTimeout>
 class Timer : public TimerAncestor {
 public:
     Timer( ObjWithTimeout *obj, double delay ) : TimerAncestor( delay ), obj( obj ) {}
-    virtual bool timeout() { return obj->timeout(); }
+    virtual void timeout() { obj->timeout(); }
 
 protected:
     ObjWithTimeout *obj;

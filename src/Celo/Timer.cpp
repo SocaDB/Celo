@@ -47,11 +47,15 @@ static int make_timer_fd( double delay ) {
 TimerAncestor::TimerAncestor( double delay ) : EventObj( make_timer_fd( delay ) ) {
 }
 
-bool TimerAncestor::inp() {
+void TimerAncestor::inp() {
     uint64_t exp;
     ssize_t s = read( fd, &exp, sizeof( uint64_t ) );
     if ( s != sizeof( uint64_t ) )
         fprintf( stderr, "timer error\n" );
 
-    return timeout();
+    timeout();
+}
+
+bool TimerAncestor::end() {
+    return false;
 }

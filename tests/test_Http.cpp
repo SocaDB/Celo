@@ -11,10 +11,10 @@ struct MyObserver {
 };
 
 struct MyListener : Listener<MyObserver> {
-    MyListener() : Listener<MyObserver>( &mo, "8888" ) {}
+    MyListener() : Listener<MyObserver>( &mo, "8899" ) {}
 
     virtual void rdy() {
-        system( "google-chrome http://localhost:8888 &" );
+        system( "google-chrome http://localhost:8899 &" );
     }
 
     MyObserver mo;

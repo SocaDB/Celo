@@ -1,13 +1,12 @@
 #ifndef HTTPREQUEST_H
 #define HTTPREQUEST_H
 
-//#include "StringBuf.h"
+#include "EventObj_WO.h"
 #include "StringBlk.h"
-#include "EventObj.h"
 
 /**
 */
-class HttpRequest : public EventObj {
+class HttpRequest : public EventObj_WO {
 public:
     enum {
         size_buff = 1024 - sizeof( void * ) - sizeof( EventObj )
@@ -27,23 +26,30 @@ public:
     HttpRequest( int fd );
     virtual ~HttpRequest();
 
-    virtual bool inp(); ///< if input data
-    virtual bool out(); ///< if ready for output
-    virtual void err(); ///< if error
-    virtual void hup(); ///< if closed
+    // EventObj
+    virtual void inp(); ///< if input data
+    virtual bool end(); ///< return true if done
+
+    // HttpRequest methods that may be redefined
+    virtual void req(); ///< Called after parsing of the header. By default, look up for files in base_dir()
+    virtual const char *base_dir(); ///< used by the default req() procedure to look up for files
 
 protected:
-    bool inp( char *data, const char *end ); ///< > 0 means continuation, < 0 means error, 0 means end
+    bool send_file( const char *url ); ///< return true of file exists
+    void send_head( const char *url ); ///< return true of file exists
+
+    void inp( char *data, const char *end ); ///< > 0 means continuation, < 0 means error, 0 means end
 
     #define ERR( NUM, MSG ) void error_##NUM();
     #include "ErrorCodes.h"
     #undef ERR
 
-    int cur_proc; ///< current reading / writing procedure
-    ReqType req_type;
-    char *url_dat;
-    int url_len; ///<
-    int url_res; ///< used only if continuation
+    int cur_inp; ///< current reading procedure
+
+    ReqType req_type; ///< GET / ...
+    char *url_dat; ///< requested url, terminated by \0
+    int   url_len; ///<
+    int   url_res; ///< used only if continuation
 
     friend void test_HttpRequest( const char *data );
 };

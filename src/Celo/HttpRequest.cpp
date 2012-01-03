@@ -1,13 +1,15 @@
 #include "HttpRequest.h"
 #include "StringHelp.h"
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <errno.h>
 
 const int size_buff = 1024;
 
-HttpRequest::HttpRequest( int fd ) : EventObj( fd ), cur_proc( 0 ), url_res( 0 ) {
+HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), cur_inp( 0 ), url_res( 0 ) {
 }
 
 HttpRequest::~HttpRequest() {
@@ -15,39 +17,111 @@ HttpRequest::~HttpRequest() {
         free( url_dat );
 }
 
-bool HttpRequest::inp() {
+void HttpRequest::inp() {
     char buff[ size_buff ];
     while ( true ) {
         ST ruff = read( fd, buff, size_buff );        
         if ( ruff < 0 ) {
             if ( errno == EAGAIN )
                 continue;
-            return true;
+            delete this;
+            return;
         }
         if ( ruff == 0 )
-            return false;
+            return;
 
         // parse
-        if ( inp( buff, buff + ruff ) )
-            return true;
+        inp( buff, buff + ruff );
+
+        // ended ?
+        if ( end() ) {
+            delete this;
+            return;
+        }
     }
 }
 
-bool HttpRequest::out() {
-    return false;
+bool HttpRequest::end() {
+    return EventObj_WO::end() and cur_inp < 0;
 }
 
-void HttpRequest::err() {
+void HttpRequest::req() {
+    std::string file = base_dir() + std::string( url_dat );
+    if ( send_file( file.c_str() ) )
+        return;
+
+    // not found
+    error_404();
 }
 
-void HttpRequest::hup() {
+const char *HttpRequest::base_dir() {
+    return "html";
+}
+
+bool HttpRequest::send_file( const char *url ) {
+    PRINT( url );
+
+    // open
+    int src = open( url, O_RDONLY );
+    if ( src < 0 )
+        return false;
+
+    // stat
+    struct stat stat_buf;
+    if ( fstat( src, &stat_buf ) ) {
+        close( src );
+        return false;
+    }
+
+    // directory ?
+    if ( S_ISDIR( stat_buf.st_mode ) ) {
+        std::string nrl = std::string( url ) + "/index.html";
+        return send_file( nrl.c_str() );
+    }
+
+    //
+    send_head( url );
+    send( src, 0, stat_buf.st_size );
+}
+
+void HttpRequest::send_head( const char *url ) {
+    const char *end = url;
+    while ( *end )
+        ++end;
+
+    while ( end > url and *(--end) != '.' );
+
+    #define SH( M, R ) \
+        if ( strcmp( end, M ) == 0 ) { \
+            const char s[] = "HTTP/1.0 200 OK\nContent-Type: " R "\n\n"; \
+            send( s, sizeof( s ) - 1, false ); \
+            return; \
+        }
+
+    SH( ".html", "text/html" );
+    SH( ".css" , "text/css"  );
+    SH( ".png" , "image/png" );
+    SH( ".jpg" , "image/jpg" );
+    SH( ".jpeg", "image/jpg" );
+    SH( ".js"  , "text/javascript" );
+
+    // default  -> plain text
+    const char s[] = "HTTP/1.0 200 OK\nContent-Type: text/plain\n\n";
+    send( s, sizeof( s ) - 1, false );
 }
 
 
-bool HttpRequest::inp( char *data, const char *end ) {
+void HttpRequest::inp( char *data, const char *end ) {
+    write( 0, data, end - data );
+
     // switch ...
+    switch ( cur_inp ) {
+    case -1:
+        return;
     #include "HttpRequest_jumps.h"
-
+    default:
+        return;
+    }
 
 // ----------------- REQ -----------------
 l_0: //
@@ -83,50 +157,8 @@ l_2: // GE
 l_3: // GET
     if ( *data != ' ' ) goto e_400;
     req_type = GET;
+    goto burl;
 
-// ----------------- URL -----------------
-burl:
-    ++data;
-bur_:
-    if ( data >= end ) goto c_39;
-l_39: // URL, first call
-    url_dat = data;
-    while ( true ) {
-        if ( ++data == end ) {
-            const char *old = url_dat;
-            url_len = data - url_dat;
-            url_res = 2 * size_buff;
-            url_dat = (char *)malloc( url_res );
-            memcpy( url_dat, old, url_len );
-            goto c_40;
-        }
-        if ( *data == ' ' ) {
-            url_len = data - url_dat;
-            *data = 0;
-            goto b_100;
-        }
-    }
-
-
-l_40: // URL, cont
-    while ( true ) {
-        if ( ++data == end )
-            goto c_40;
-        if ( url_len == url_res ) {
-            char *old = url_dat;
-            url_dat = (char *)malloc( url_res *= 2 );
-            memcpy( url_dat, old, url_len );
-            free( old );
-        }
-
-        if ( *data == ' ' ) {
-            url_dat[ url_len ] = 0;
-            goto b_100;
-        }
-        url_dat[ url_len++ ] = *data;
-    }
-
-// -------------- REQ cont ---------------
 b_4:
     if ( ++data >= end ) goto c_4;
 l_4: // P
@@ -268,8 +300,62 @@ l_38: // CONNECT
     req_type = CONNECT;
     goto burl;
 
+
+// ----------------- URL -----------------
+burl:
+    ++data;
+bur_:
+    if ( data >= end ) goto c_39;
+l_39: // URL, first call
+    url_dat = data;
+    while ( true ) {
+        if ( ++data == end ) {
+            const char *old = url_dat;
+            url_len = data - url_dat;
+            url_res = 2 * size_buff;
+            url_dat = (char *)malloc( url_res );
+            memcpy( url_dat, old, url_len );
+            goto c_40;
+        }
+        if ( *data == ' ' ) {
+            url_len = data - url_dat;
+            *data = 0;
+            goto eurl;
+        }
+    }
+
+
+l_40: // URL, cont
+    while ( true ) {
+        if ( ++data == end )
+            goto c_40;
+        if ( url_len == url_res ) {
+            char *old = url_dat;
+            url_dat = (char *)malloc( url_res *= 2 );
+            memcpy( url_dat, old, url_len );
+            free( old );
+        }
+
+        if ( *data == ' ' ) {
+            url_dat[ url_len ] = 0;
+            goto eurl;
+        }
+        url_dat[ url_len++ ] = *data;
+    }
+
+eurl:
+    if ( req_type == GET ) {
+        cur_inp = -1;
+        return req();
+    }
+
+// -----------------  ------------------
+
+
+// ----------------- ERRORS ------------------
+
 // e_...
-#define ERR( NUM, MSG ) e_##NUM: error_##NUM(); return true;
+#define ERR( NUM, MSG ) e_##NUM: cur_inp = -1; return error_##NUM();
 #include "ErrorCodes.h"
 #undef ERR
 
@@ -277,7 +363,7 @@ l_38: // CONNECT
 #include "HttpRequest_conts.h"
 
 b_100:
-    return 0;
+    return;
 }
 
 #define ERR( NUM, MSG ) \

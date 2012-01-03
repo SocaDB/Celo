@@ -108,13 +108,11 @@
 n = 41
 
 f = file( "src/Celo/HttpRequest_jumps.h", "w" )
-f.write( "switch ( cur_proc ) {\n" )
 for i in range( n ):
     f.write( "    case " + str( i ) + ": goto l_" + str( i ) + ";\n" )
-f.write( "}\n" )
 
 f = file( "src/Celo/HttpRequest_conts.h", "w" )
 for i in range( n ):
-    f.write( "c_" + str( i ) + ": cur_proc = " + str( i ) + "; return false;\n" )
+    f.write( "c_" + str( i ) + ": cur_inp = " + str( i ) + "; return;\n" )
 
 

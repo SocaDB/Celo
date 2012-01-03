@@ -4,7 +4,6 @@
 #include <unistd.h>
 
 EventObj::EventObj( int fd ) : fd( fd ) {
-    rem_out = 0;
 }
 
 EventObj::~EventObj() {
@@ -12,36 +11,28 @@ EventObj::~EventObj() {
         close( fd );
 }
 
-bool EventObj::inp() {
-    return false;
+void EventObj::inp() {
+    if ( end() )
+        delete this;
 }
 
-bool EventObj::out() {
-    //    if ( rem_size_out ) {
-    //        int real = ::send( fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
-    //        if ( real < 0 )
-    //            continue;
-    //        size -= real;
-    //        data += real;
-
-    //    }
-    return false;
+void EventObj::out() {
+    if ( end() )
+        delete this;
 }
 
 void EventObj::err() {
+    delete this;
 }
 
 void EventObj::hup() {
+    delete this;
 }
 
 void EventObj::rdy() {
 }
 
-bool EventObj::send( const char *data, ST size, bool end ) {
-    write( fd, data, size );
-    return false;
+bool EventObj::end() {
+    return true;
 }
 
-bool EventObj::send( const std::string &str, bool end ) {
-    send( str.c_str(), str.size(), end );
-}
