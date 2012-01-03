@@ -30,3 +30,4 @@ src/Celo/HttpRequest_FileServer.cpp
 src/Celo/RemOutput.h
 src/Celo/RemOutput.cpp
 html/index.html
+tests/test_SpeedyLabel.cpp

@@ -43,8 +43,10 @@ protected:
     #include "ErrorCodes.h"
     #undef ERR
 
-    int cur_inp; ///< current reading procedure
+    // parsing context
+    void *inp_cont; ///< for continuation
 
+    // output from the parser
     ReqType req_type; ///< GET / ...
     char   *url_data; ///< requested url, terminated by \0
     int     url_size; ///<

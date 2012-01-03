@@ -9,7 +9,7 @@
 
 const int size_buff = 1024;
 
-HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), cur_inp( 0 ), url_rese( 0 ) {
+HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), inp_cont( 0 ), url_rese( 0 ) {
 }
 
 HttpRequest::~HttpRequest() {
@@ -24,13 +24,13 @@ void HttpRequest::inp() {
         if ( ruff < 0 ) {
             if ( errno == EAGAIN )
                 continue;
-            cur_inp = -1;
+            inp_cont = 0;
             return;
         }
 
         // at the end ?
         if ( ruff == 0 ) {
-            cur_inp = -1;
+            inp_cont = 0;
             return;
         }
 
@@ -38,13 +38,13 @@ void HttpRequest::inp() {
         inp( buff, buff + ruff );
 
         //
-        if ( cur_inp < 0 )
+        if ( not inp_cont )
             return;
     }
 }
 
 bool HttpRequest::end() {
-    return EventObj_WO::end() and cur_inp < 0;
+    return EventObj_WO::end() and not inp_cont;
 }
 
 void HttpRequest::req() {
@@ -110,48 +110,49 @@ void HttpRequest::send_head( const char *url ) {
 
 void HttpRequest::inp( char *data, const char *end ) {
     // write( 0, data, end - data );
+    if ( inp_cont )
+        goto *inp_cont;
 
-    // switch ...
-    switch ( cur_inp ) {
-    case -1:
-        return;
-    #include "HttpRequest_jumps.h"
-    default:
-        return;
-    }
 
 // ----------------- REQ -----------------
-l_0: //
+l_: //
     // we have at least 4 bytes ?
     if ( end - data >= 4 ) {
         int val = *reinterpret_cast<const int *>( data );
 
-        #ifdef __LITTLE_ENDIAN
-        if ( val == 0x20544547 ) { data += 4; req_type = GET; goto bur_; } // "GET "
-        if ( val == 0x54534F50 ) { data += 4; goto b_POST; } // "POST"
-        if ( val == 0x20545550 ) { data += 4; req_type = PUT; goto bur_; } // "PUT "
-        #else
+        #if __BYTE_ORDER == __LITTLE_ENDIAN
+        if ( val == 0x20544547 ) { data += 4; req_type = GET; goto   bur_; } // "GET "
+        if ( val == 0x54534F50 ) { data += 4;                 goto b_POST; } // "POST"
+        if ( val == 0x20545550 ) { data += 4; req_type = PUT; goto   bur_; } // "PUT "
+        #elif __BYTE_ORDER == __BIG_ENDIAN
         if ( val == 0x47455420 ) { data += 4; req_type = GET; goto bur_; } // "GET "
         if ( val == 0x504F5354 ) { data += 4; goto b_POST; } // "POST"
         if ( val == 0x50555420 ) { data += 4; req_type = PUT; goto bur_; } // "PUT "
+        #else
+        Unknown endianness
         #endif
     }
 
-    if ( *data == 'P' ) goto b_4;
-    if ( *data == 'D' ) goto b_10;
-    if ( *data == 'O' ) goto b_16;
-    if ( *data == 'H' ) goto b_23;
-    if ( *data == 'T' ) goto b_27;
-    if ( *data == 'C' ) goto b_32;
-    if ( *data != 'G' ) goto e_400;
-    if ( ++data >= end ) goto c_1;
-l_1: // G
+    switch ( *data ) {
+    case 'P': goto b_P;
+    case 'D': goto b_D;
+    case 'O': goto b_O;
+    case 'H': goto b_H;
+    case 'T': goto b_T;
+    case 'C': goto b_C;
+    case 'G': goto b_G;
+    default: goto e_400;
+    }
+
+b_G:
+    if ( ++data >= end ) goto c_G;
+l_G:
     if ( *data != 'E' ) goto e_400;
-    if ( ++data >= end ) goto c_2;
-l_2: // GE
+    if ( ++data >= end ) goto c_GE;
+l_GE:
     if ( *data != 'T' ) goto e_400;
-    if ( ++data >= end ) goto c_3;
-l_3: // GET
+    if ( ++data >= end ) goto c_GET;
+l_GET:
     if ( *data != ' ' ) goto e_400;
     req_type = GET;
     goto burl;
@@ -299,11 +300,11 @@ l_38: // CONNECT
 
 
 // ----------------- URL -----------------
-burl:
+a_url:
     ++data;
-bur_:
+b_url:
     if ( data >= end ) goto c_39;
-l_39: // URL, first call
+l_url: // URL, first call
     url_data = data;
     while ( true ) {
         if ( ++data == end ) {
@@ -322,7 +323,7 @@ l_39: // URL, first call
     }
 
 
-l_40: // URL, cont
+m_url: // URL, cont
     while ( true ) {
         if ( ++data == end )
             goto c_40;

@@ -1,5 +1,5 @@
-MCP = metil_comp --exec-using "valgrind --leak-check=full" -g3 --no-sep-libs -Isrc
-PRG = tests/test_Http.cpp
+MCP = metil_comp -O3 -g3 --no-sep-libs -Isrc
+PRG = tests/test_SpeedyLabel.cpp
 #--exec-using "valgrind --leak-check=full"
 
 all: gen
