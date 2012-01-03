@@ -1,13 +1,11 @@
 #include "HttpRequest_FileServer.h"
 
-HttpRequest_FileServer::HttpRequest_FileServer( int fd, const char *base ) : HttpRequest( fd ), base( base ) {
+HttpRequest_FileServer::HttpRequest_FileServer( int fd ) : HttpRequest( fd ) {
 }
 
 void HttpRequest_FileServer::req() {
-    std::string file = base + std::string( url_dat );
-    if ( send_file( file.c_str() ) )
+    if ( send_file( url_data + 1 ) )
         return;
 
-    // not found
-    error_404();
+    HttpRequest::req();
 }

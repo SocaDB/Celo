@@ -1,3 +1,4 @@
+#include "StringHelp.h"
 #include "EventObj.h"
 
 #include <sys/socket.h>

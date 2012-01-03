@@ -9,35 +9,37 @@
 
 const int size_buff = 1024;
 
-HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), cur_inp( 0 ), url_res( 0 ) {
+HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), cur_inp( 0 ), url_rese( 0 ) {
 }
 
 HttpRequest::~HttpRequest() {
-    if ( url_res )
-        free( url_dat );
+    if ( url_rese )
+        free( url_data );
 }
 
 void HttpRequest::inp() {
     char buff[ size_buff ];
     while ( true ) {
-        ST ruff = read( fd, buff, size_buff );        
+        ST ruff = read( fd, buff, size_buff );
         if ( ruff < 0 ) {
             if ( errno == EAGAIN )
                 continue;
-            delete this;
+            cur_inp = -1;
             return;
         }
-        if ( ruff == 0 )
+
+        // at the end ?
+        if ( ruff == 0 ) {
+            cur_inp = -1;
             return;
+        }
 
         // parse
         inp( buff, buff + ruff );
 
-        // ended ?
-        if ( end() ) {
-            delete this;
+        //
+        if ( cur_inp < 0 )
             return;
-        }
     }
 }
 
@@ -45,11 +47,19 @@ bool HttpRequest::end() {
     return EventObj_WO::end() and cur_inp < 0;
 }
 
+void HttpRequest::req() {
+    // not found
+    error_404();
+}
+
 bool HttpRequest::send_file( const char *url ) {
     // open
     int src = open( url, O_RDONLY );
-    if ( src < 0 )
+    if ( src < 0 ) {
+        if ( not *url )
+            return send_file( "index.html" );
         return false;
+    }
 
     // stat
     struct stat stat_buf;
@@ -60,7 +70,8 @@ bool HttpRequest::send_file( const char *url ) {
 
     // directory ?
     if ( S_ISDIR( stat_buf.st_mode ) ) {
-        std::string nrl = std::string( url ) + "/index.html";
+        std::string nrl = url;
+        nrl += "/index.html";
         return send_file( nrl.c_str() );
     }
 
@@ -98,7 +109,7 @@ void HttpRequest::send_head( const char *url ) {
 
 
 void HttpRequest::inp( char *data, const char *end ) {
-    write( 0, data, end - data );
+    // write( 0, data, end - data );
 
     // switch ...
     switch ( cur_inp ) {
@@ -293,18 +304,18 @@ burl:
 bur_:
     if ( data >= end ) goto c_39;
 l_39: // URL, first call
-    url_dat = data;
+    url_data = data;
     while ( true ) {
         if ( ++data == end ) {
-            const char *old = url_dat;
-            url_len = data - url_dat;
-            url_res = 2 * size_buff;
-            url_dat = (char *)malloc( url_res );
-            memcpy( url_dat, old, url_len );
+            const char *old = url_data;
+            url_size = data - url_data;
+            url_rese = 2 * size_buff;
+            url_data = (char *)malloc( url_rese );
+            memcpy( url_data, old, url_size );
             goto c_40;
         }
         if ( *data == ' ' ) {
-            url_len = data - url_dat;
+            url_size = data - url_data;
             *data = 0;
             goto eurl;
         }
@@ -315,18 +326,18 @@ l_40: // URL, cont
     while ( true ) {
         if ( ++data == end )
             goto c_40;
-        if ( url_len == url_res ) {
-            char *old = url_dat;
-            url_dat = (char *)malloc( url_res *= 2 );
-            memcpy( url_dat, old, url_len );
+        if ( url_size == url_rese ) {
+            char *old = url_data;
+            url_data = (char *)malloc( url_rese *= 2 );
+            memcpy( url_data, old, url_size );
             free( old );
         }
 
         if ( *data == ' ' ) {
-            url_dat[ url_len ] = 0;
+            url_data[ url_size ] = 0;
             goto eurl;
         }
-        url_dat[ url_len++ ] = *data;
+        url_data[ url_size++ ] = *data;
     }
 
 eurl:

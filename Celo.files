@@ -27,3 +27,6 @@ src/Celo/EventObj_WO.h
 src/Celo/EventObj_WO.cpp
 src/Celo/HttpRequest_FileServer.h
 src/Celo/HttpRequest_FileServer.cpp
+src/Celo/RemOutput.h
+src/Celo/RemOutput.cpp
+html/index.html

@@ -18,6 +18,10 @@ public:
     void send( const char *data, ST size, bool end = true ); ///< from string data, data + size
     void send( int src, ST off, ST len ); ///< from file src
 
+protected:
+    void append( struct RemOutput *rem_out );
+    void cl_rem();
+
     struct RemOutput *prim_rem_out;
     struct RemOutput *last_rem_out;
 };

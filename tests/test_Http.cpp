@@ -2,11 +2,23 @@
 #include <Celo/StringHelp.h>
 #include <Celo/EventLoop.h>
 #include <Celo/Listener.h>
+#include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+
+struct MyHttpRequest : public HttpRequest_FileServer {
+    MyHttpRequest( int fd ) : HttpRequest_FileServer( fd ) {}
+    virtual void req() {
+        PRINT( url_data );
+        if ( strcmp( url_data, "/exit" ) == 0 )
+            return ev_loop->stop();
+        HttpRequest_FileServer::req();
+    }
+};
 
 struct MyObserver {
     EventObj *event_obj_factory( int fd ) {
-        return new HttpRequest_FileServer( fd, "html" );
+        return new MyHttpRequest( fd );
     }
 };
 
@@ -21,8 +33,14 @@ struct MyListener : Listener<MyObserver> {
 };
 
 int main() {
+    if ( int res = chdir( "html" ) ) {
+        perror( "chdir" );
+        return res;
+    }
+
+    MyListener l;
     EventLoop el;
-    el << new MyListener;
+    el << &l;
     return el.run();
 }
 

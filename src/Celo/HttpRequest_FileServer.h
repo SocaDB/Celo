@@ -7,10 +7,8 @@
 */
 class HttpRequest_FileServer : public HttpRequest {
 public:
-    HttpRequest_FileServer( int fd, const char *base );
+    HttpRequest_FileServer( int fd );
     virtual void req();
-
-    const char *base;
 };
 
 #endif // HTTPREQUEST_FILESERVER_H

@@ -35,12 +35,15 @@ int EventLoop::run() {
             EventObj *rq = reinterpret_cast<EventObj *>( events[ n ].data.ptr );
             if ( events[ n ].events & EPOLLIN ) // input data
                 rq->inp();
-            else if ( events[ n ].events & EPOLLOUT ) // output data
-                rq->out();
-            else if ( events[ n ].events & EPOLLHUP ) // end of the bananas ?
+            if ( events[ n ].events & EPOLLOUT ) // output data
+                rq->out();            
+            if ( events[ n ].events & EPOLLHUP ) // end of the bananas ?
                 rq->hup();
-            else if ( events[ n ].events & EPOLLERR ) // error ?
+            if ( events[ n ].events & EPOLLERR ) // error ?
                 rq->err();
+
+            if ( rq->end() )
+                delete rq;
         }
     }
 
