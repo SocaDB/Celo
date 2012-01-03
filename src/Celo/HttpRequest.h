@@ -31,8 +31,7 @@ public:
     virtual bool end(); ///< return true if done
 
     // HttpRequest methods that may be redefined
-    virtual void req(); ///< Called after parsing of the header. By default, look up for files in base_dir()
-    virtual const char *base_dir(); ///< used by the default req() procedure to look up for files
+    virtual void req() = 0; ///< Called after parsing of the header. By default, look up for files in base_dir()
 
 protected:
     bool send_file( const char *url ); ///< return true of file exists

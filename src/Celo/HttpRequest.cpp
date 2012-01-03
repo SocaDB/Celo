@@ -45,22 +45,7 @@ bool HttpRequest::end() {
     return EventObj_WO::end() and cur_inp < 0;
 }
 
-void HttpRequest::req() {
-    std::string file = base_dir() + std::string( url_dat );
-    if ( send_file( file.c_str() ) )
-        return;
-
-    // not found
-    error_404();
-}
-
-const char *HttpRequest::base_dir() {
-    return "html";
-}
-
 bool HttpRequest::send_file( const char *url ) {
-    PRINT( url );
-
     // open
     int src = open( url, O_RDONLY );
     if ( src < 0 )
@@ -82,6 +67,7 @@ bool HttpRequest::send_file( const char *url ) {
     //
     send_head( url );
     send( src, 0, stat_buf.st_size );
+    return true;
 }
 
 void HttpRequest::send_head( const char *url ) {

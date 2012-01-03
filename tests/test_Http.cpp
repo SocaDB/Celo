@@ -1,4 +1,4 @@
-#include <Celo/HttpRequest.h>
+#include <Celo/HttpRequest_FileServer.h>
 #include <Celo/StringHelp.h>
 #include <Celo/EventLoop.h>
 #include <Celo/Listener.h>
@@ -6,7 +6,7 @@
 
 struct MyObserver {
     EventObj *event_obj_factory( int fd ) {
-        return new HttpRequest( fd );
+        return new HttpRequest_FileServer( fd, "html" );
     }
 };
 
