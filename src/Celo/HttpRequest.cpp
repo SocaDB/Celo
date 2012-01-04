@@ -9,7 +9,7 @@
 
 const int size_buff = 1024;
 
-HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), inp_cont( 0 ), url_rese( 0 ) {
+HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), inp_cont( 0 ), url_rese( 0 ), content_length( 0 ) {
 }
 
 HttpRequest::~HttpRequest() {
@@ -113,220 +113,37 @@ void HttpRequest::inp( char *data, const char *end ) {
     if ( inp_cont )
         goto *inp_cont;
 
-
-// ----------------- REQ -----------------
-l_: //
-    // we have at least 4 bytes ?
-    if ( end - data >= 4 ) {
-        int val = *reinterpret_cast<const int *>( data );
-
-        #if __BYTE_ORDER == __LITTLE_ENDIAN
-        if ( val == 0x20544547 ) { data += 4; req_type = GET; goto   bur_; } // "GET "
-        if ( val == 0x54534F50 ) { data += 4;                 goto b_POST; } // "POST"
-        if ( val == 0x20545550 ) { data += 4; req_type = PUT; goto   bur_; } // "PUT "
-        #elif __BYTE_ORDER == __BIG_ENDIAN
-        if ( val == 0x47455420 ) { data += 4; req_type = GET; goto bur_; } // "GET "
-        if ( val == 0x504F5354 ) { data += 4; goto b_POST; } // "POST"
-        if ( val == 0x50555420 ) { data += 4; req_type = PUT; goto bur_; } // "PUT "
-        #else
-        Unknown endianness
-        #endif
-    }
-
-    switch ( *data ) {
-    case 'P': goto b_P;
-    case 'D': goto b_D;
-    case 'O': goto b_O;
-    case 'H': goto b_H;
-    case 'T': goto b_T;
-    case 'C': goto b_C;
-    case 'G': goto b_G;
-    default: goto e_400;
-    }
-
-b_G:
-    if ( ++data >= end ) goto c_G;
-l_G:
-    if ( *data != 'E' ) goto e_400;
-    if ( ++data >= end ) goto c_GE;
-l_GE:
-    if ( *data != 'T' ) goto e_400;
-    if ( ++data >= end ) goto c_GET;
-l_GET:
-    if ( *data != ' ' ) goto e_400;
-    req_type = GET;
-    goto burl;
-
-b_4:
-    if ( ++data >= end ) goto c_4;
-l_4: // P
-    if ( *data == 'U' ) goto b_8;
-    if ( *data != 'O' ) goto e_400;
-    if ( ++data >= end ) goto c_5;
-l_5: // PO
-    if ( *data != 'S' ) goto e_400;
-    if ( ++data >= end ) goto c_6;
-l_6: // POS
-    if ( *data != 'T' ) goto e_400;
-    ++data;
-b_POST:
-    if ( data >= end ) goto c_7;
-l_7: // POST
-    if ( *data != ' ' ) goto e_400;
-    req_type = POST;
-    goto burl;
-
-b_8:
-    if ( ++data >= end ) goto c_8;
-l_8: // PU
-    if ( *data != 'T' ) goto e_400;
-    if ( ++data >= end ) goto c_9;
-l_9: // PUT
-    if ( *data != ' ' ) goto e_400;
-    req_type = PUT;
-    goto burl;
-
-
-b_10:
-    if ( ++data >= end ) goto c_10;
-l_10: // D
-    if ( *data != 'E' ) goto e_400;
-    if ( ++data >= end ) goto c_11;
-l_11: // DE
-    if ( *data != 'L' ) goto e_400;
-    if ( ++data >= end ) goto c_12;
-l_12: // DEL
-    if ( *data != 'E' ) goto e_400;
-    if ( ++data >= end ) goto c_13;
-l_13: // DELE
-    if ( *data != 'T' ) goto e_400;
-    if ( ++data >= end ) goto c_14;
-l_14: // DELET
-    if ( *data != 'E' ) goto e_400;
-    if ( ++data >= end ) goto c_15;
-l_15: // DELETE
-    if ( *data != ' ' ) goto e_400;
-    req_type = DELETE;
-    goto burl;
-
-
-b_16:
-    if ( ++data >= end ) goto c_16;
-l_16: // O
-    if ( *data != 'P' ) goto e_400;
-    if ( ++data >= end ) goto c_17;
-l_17: // OP
-    if ( *data != 'T' ) goto e_400;
-    if ( ++data >= end ) goto c_18;
-l_18: // OPT
-    if ( *data != 'I' ) goto e_400;
-    if ( ++data >= end ) goto c_19;
-l_19: // OPTI
-    if ( *data != 'O' ) goto e_400;
-    if ( ++data >= end ) goto c_20;
-l_20: // OPTIO
-    if ( *data != 'N' ) goto e_400;
-    if ( ++data >= end ) goto c_21;
-l_21: // OPTION
-    if ( *data != 'S' ) goto e_400;
-    if ( ++data >= end ) goto c_22;
-l_22: // OPTIONS
-    if ( *data != ' ' ) goto e_400;
-    req_type = OPTIONS;
-    goto burl;
-
-b_23:
-    if ( ++data >= end ) goto c_23;
-l_23: // H
-    if ( *data != 'E' ) goto e_400;
-    if ( ++data >= end ) goto c_24;
-l_24: // HE
-    if ( *data != 'A' ) goto e_400;
-    if ( ++data >= end ) goto c_25;
-l_25: // HEA
-    if ( *data != 'D' ) goto e_400;
-    if ( ++data >= end ) goto c_26;
-l_26: // HEAD
-    if ( *data != ' ' ) goto e_400;
-    req_type = HEAD;
-    goto burl;
-
-
-
-b_27:
-    if ( ++data >= end ) goto c_27;
-l_27: // T
-    if ( *data != 'R' ) goto e_400;
-    if ( ++data >= end ) goto c_28;
-l_28: // TR
-    if ( *data != 'A' ) goto e_400;
-    if ( ++data >= end ) goto c_29;
-l_29: // TRA
-    if ( *data != 'C' ) goto e_400;
-    if ( ++data >= end ) goto c_30;
-l_30: // TRAC
-    if ( *data != 'E' ) goto e_400;
-    if ( ++data >= end ) goto c_31;
-l_31: // TRACE
-    if ( *data != ' ' ) goto e_400;
-    req_type = TRACE;
-    goto burl;
-
-
-b_32:
-    if ( ++data >= end ) goto c_32;
-l_32: // C
-    if ( *data != 'O' ) goto e_400;
-    if ( ++data >= end ) goto c_33;
-l_33: // CO
-    if ( *data != 'N' ) goto e_400;
-    if ( ++data >= end ) goto c_34;
-l_34: // CON
-    if ( *data != 'N' ) goto e_400;
-    if ( ++data >= end ) goto c_35;
-l_35: // CONN
-    if ( *data != 'E' ) goto e_400;
-    if ( ++data >= end ) goto c_36;
-l_36: // CONNE
-    if ( *data != 'C' ) goto e_400;
-    if ( ++data >= end ) goto c_37;
-l_37: // CONNEC
-    if ( *data != 'T' ) goto e_400;
-    if ( ++data >= end ) goto c_38;
-l_38: // CONNECT
-    if ( *data != ' ' ) goto e_400;
-    req_type = CONNECT;
-    goto burl;
-
+// ----------------- REQUEST TYPE -----------------
+#define FALLBACK goto e_400
+#include "HttpRequest_read_req.h"
+#undef  FALLBACK
 
 // ----------------- URL -----------------
-a_url:
+a_url_beg:
     ++data;
-b_url:
-    if ( data >= end ) goto c_39;
-l_url: // URL, first call
+b_url_beg:
+    if ( data >= end ) goto c_url_beg;
+l_url_beg: // URL, first call
     url_data = data;
     while ( true ) {
+        if ( *data == ' ' ) {
+            url_size = data - url_data;
+            *data = 0;
+            goto e_url;
+        }
         if ( ++data == end ) {
             const char *old = url_data;
             url_size = data - url_data;
             url_rese = 2 * size_buff;
             url_data = (char *)malloc( url_rese );
             memcpy( url_data, old, url_size );
-            goto c_40;
-        }
-        if ( *data == ' ' ) {
-            url_size = data - url_data;
-            *data = 0;
-            goto eurl;
+            goto c_url_cnt;
         }
     }
 
 
-m_url: // URL, cont
+l_url_cnt: // URL, cont
     while ( true ) {
-        if ( ++data == end )
-            goto c_40;
         if ( url_size == url_rese ) {
             char *old = url_data;
             url_data = (char *)malloc( url_rese *= 2 );
@@ -336,31 +153,46 @@ m_url: // URL, cont
 
         if ( *data == ' ' ) {
             url_data[ url_size ] = 0;
-            goto eurl;
+            goto e_url;
         }
         url_data[ url_size++ ] = *data;
+
+        if ( ++data == end )
+            goto c_url_cnt;
     }
 
-eurl:
+e_url:
     if ( req_type == GET ) {
-        cur_inp = -1;
+        inp_cont = 0;
         return req();
     }
 
-// -----------------  ------------------
+// -------------- Header Fields --------------
+#define FALLBACK goto l_header_fields_;
+#define PROC_a_header_fields__nContent_mLength_d_s \
+    ++data
+#define PROC_b_header_fields__nContent_mLength_d_s \
+        if ( data >= end ) goto c_ContentLength_read; \
+    l_ContentLength_read: \
+        if ( *data < '0' or *data > '9' ) goto l_header_fields_; \
+        content_length = 10 * content_length + ( *data - '0' ); \
+        goto a_header_fields__nContent_mLength_d_s;
+#include "HttpRequest_header_fields.h"
+#undef  FALLBACK
 
+// Content-Length
 
 // ----------------- ERRORS ------------------
-
-// e_...
-#define ERR( NUM, MSG ) e_##NUM: cur_inp = -1; return error_##NUM();
-#include "ErrorCodes.h"
-#undef ERR
 
 // c_...
 #include "HttpRequest_conts.h"
 
-b_100:
+// e_...
+#define ERR( NUM, MSG ) e_##NUM: inp_cont = 0; return error_##NUM();
+#include "ErrorCodes.h"
+#undef ERR
+
+l_user:
     return;
 }
 

@@ -51,8 +51,9 @@ protected:
     char   *url_data; ///< requested url, terminated by \0
     int     url_size; ///<
     int     url_rese; ///< used only if continuation
+    int     content_length;
 
-    friend void test_HttpRequest( const char *data );
+    friend void test_HttpRequest( const char *data, int chunk_size );
 };
 
 #endif // HTTPREQUEST_H

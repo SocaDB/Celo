@@ -3,32 +3,32 @@
 #include <stdlib.h>
 #include <string.h>
 
-void test_HttpRequest( const char *dat_ ) {
-    char *data = strdup( dat_ );
-    std::cout << dat_ << std::endl;
-
-    HttpRequest req( 0 );
-    req.inp( data, data + strlen( data ) );
-    PRINT( req.req_type );
-    PRINT( req.url_dat );
+void test_HttpRequest( const char *cata, int chunk_size ) {
+    char *data = strdup( cata );
 
     HttpRequest rer( 0 );
-    for( int i = 0; data[ i ]; ++i ) {
-        //PRINT( rer.cur_proc );
-        if ( rer.inp( data + i, data + i + 1 ) )
+    for( int i = 0; i < strlen( data ); i += chunk_size ) {
+        rer.inp( data + i, data + std::min( i + chunk_size, (int)strlen( data ) ) );
+        if ( rer.end() )
             break;
     }
-    PRINT( rer.req_type );
-    PRINT( req.url_dat );
+    std::cout << " -> " << rer.req_type << " u=" << rer.url_data << " l=" << rer.content_length << std::endl;
 
     free( data );
 }
 
+void test_HttpRequest( const char *data ) {
+    std::cout << data << std::endl;
+    test_HttpRequest( data, 1024 );
+    test_HttpRequest( data, 1 );
+}
+
 int main() {
-    test_HttpRequest( "GET / HTTP/1.1"  );
-    test_HttpRequest( "POST /nouille HTTP/1.1" );
-    test_HttpRequest( "PUT /toto? HTTP/1.1"  );
-    test_HttpRequest( "DELETE /yop HTTP/1.1"  );
+    test_HttpRequest( "GET / HTTP/1.1\npouet\n\n"  );
+    test_HttpRequest( "POST /nouille HTTP/1.1\nContent-Length: 3495\n\n" );
+    //test_HttpRequest( "POST /nouille HTTP/1.1\r\nContent-Length: 3495\r\n\r\n" );
+    //test_HttpRequest( "PUT /toto? HTTP/1.1"  );
+    //test_HttpRequest( "DELETE /yop HTTP/1.1"  );
 }
 
 
