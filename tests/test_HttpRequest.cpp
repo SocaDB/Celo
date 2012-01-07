@@ -24,8 +24,8 @@ void test_HttpRequest( const char *data ) {
 }
 
 int main() {
-    test_HttpRequest( "GET / HTTP/1.1\npouet\n\n"  );
-    test_HttpRequest( "POST /nouille HTTP/1.1\nContent-Length: 3495\n\n" );
+    test_HttpRequest( "GET /rotiapum HTTP/1.1\npouet\n\n"  );
+    //test_HttpRequest( "POST /nouille HTTP/1.1\nContent-Length: 3495\n\n" );
     //test_HttpRequest( "POST /nouille HTTP/1.1\r\nContent-Length: 3495\r\n\r\n" );
     //test_HttpRequest( "PUT /toto? HTTP/1.1"  );
     //test_HttpRequest( "DELETE /yop HTTP/1.1"  );

@@ -20,18 +20,27 @@ class Out:
     def __init__( self, f ):
         self.f = f
         self.l = []
-        
+        self.s = [] # string that may need to be copied
+
     def __iadd__( self, line ):
         self.f.write( line + "\n" )
         return self
-        
+
     def add_cnt( self, c ):
         self.l.append( c )
-    
+
+    def add_str( self, var ):
+        if not ( var in self.s ):
+            self.s.append( var )
+
     def finalize( self ):
         for c in self.l:
-            self += "c_" + c + ": inp_cont = &&l_" + c + "; return;"
- 
+            self += "c_" + c + ": inp_cont = &&l_" + c + "; goto str_cpy_if_needed;"
+        self += "str_cpy_if_needed:"
+        for v in self.s:
+            self += "    " + v + ".make_own_copy_if_not_the_case();"
+        self += "    return;"
+
 class Word:
     def __init__( self, word, prob = 1 ):
         self.word = word
@@ -105,7 +114,8 @@ class String( ParseItem ):
     
     def write( self, f, path ):
         l = self.new_prefix()
-        f.add_cnt( l + "_cnt" ) 
+        f.add_cnt( l + "_cnt" )
+        f.add_str( self.varname )
         endtest = string.join( [ "*data == '" + v + "'" for v in self.end ], " or " )
         f += """
             l_{l}_beg: // first call
@@ -118,26 +128,17 @@ class String( ParseItem ):
                     }
                     if ( ++data == end ) {
                         {varname}.size = data - {varname}.data;
-                        {varname}.own_copy( 2 * size_buff );
                         goto c_{l}_cnt;
                     }
                 }
-
             l_{l}_cnt: // cont
                 while ( true ) {
-                    if ( {varname}.size == {varname}.rese ) {
-                        char *old = {varname}.data;
-                        {varname}.data = (char *)malloc( {varname}.rese *= 2 );
-                        memcpy( {varname}.data, old, {varname}.size );
-                        free( old );
-                    }
-
+                    {varname}.make_room_for_at_least_1_char();
                     if ( {endtest} ) {
                         {varname}.data[ {varname}.size ] = 0;
                         goto e_{l};
                     }
                     {varname}.data[ {varname}.size++ ] = *data;
-
                     if ( ++data == end )
                         goto c_{l}_cnt;
                 }
@@ -185,7 +186,7 @@ for n in [ ( "GET ", 5 ), ( "POST ", 3 ), ( "PUT ", 1 ) ]: # , "DELETE ", "TRACE
     s = String( "url" )
     w.next = s
     
-    s.next = TxtItem( "    return req_" + n[ 0 ][ : -1 ] + "();" )
+    s.next = TxtItem( "    inp_cont = 0; return req_" + n[ 0 ][ : -1 ] + "();" )
 
 out = Out( file( "src/Celo/HttpRequest_gen.h", "w" ) )
 choice.write( out )
