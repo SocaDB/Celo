@@ -2,7 +2,7 @@
 #define HTTPREQUEST_H
 
 #include "EventObj_WO.h"
-#include "StringBlk.h"
+#include "StringCpn.h"
 
 /**
 */
@@ -31,7 +31,9 @@ public:
     virtual bool end(); ///< return true if done
 
     // HttpRequest methods that may be redefined
-    virtual void req(); ///< Called after parsing of the header. By default, look up for files in base_dir()
+    virtual void req_GET(); ///< Called after parsing of the header. By default, look up for files in base_dir()
+    virtual void req_PUT(); ///< Called after parsing of the header. By default, look up for files in base_dir()
+    virtual void req_POST(); ///< Called after parsing of the header. By default, look up for files in base_dir()
 
 protected:
     bool send_file( const char *url ); ///< return true of file exists
@@ -44,14 +46,11 @@ protected:
     #undef ERR
 
     // parsing context
-    void *inp_cont; ///< for continuation
+    void *inp_cont;       ///< for continuation
+    int   content_length; ///<
 
     // output from the parser
-    ReqType req_type; ///< GET / ...
-    char   *url_data; ///< requested url, terminated by \0
-    int     url_size; ///<
-    int     url_rese; ///< used only if continuation
-    int     content_length;
+    StringCpn url;            ///< requested url
 
     friend void test_HttpRequest( const char *data, int chunk_size );
 };

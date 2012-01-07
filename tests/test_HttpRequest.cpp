@@ -12,7 +12,7 @@ void test_HttpRequest( const char *cata, int chunk_size ) {
         if ( rer.end() )
             break;
     }
-    std::cout << " -> " << rer.req_type << " u=" << rer.url_data << " l=" << rer.content_length << std::endl;
+    std::cout << " -> " << " u=" << rer.url.data << " l=" << rer.content_length << std::endl;
 
     free( data );
 }

@@ -51,28 +51,28 @@ class ParseItem:
 class Choice( ParseItem ):
     def __init__( self ):
         self.choices = []
-        self.fallback = ""
+        self.fallback = -1
         
     def __iadd__( self, word ):
         self.choices.append( w )
         return self
     
-    def write( self, f ):
-        self._write_rec( f, self.new_prefix(), "" )
+    def write( self, f, path = [] ):
+        p = self.new_prefix()
+        self._write_rec( f, p, "", path + [ p ] )
         
-    def _fallback( self, prefix, beg ):
-        if len( self.fallback ):
+    def _fallback( self, path ):
+        if type( self.fallback ) == str:
             return self.fallback
-        return "goto l_" + prefix + ";"
+        return "goto l_" + path[ self.fallback ] + ";"
         
-    def _write_rec( self, f, prefix, beg ):
+    def _write_rec( self, f, prefix, beg, path ):
         f += "l_" + prefix + cvar( beg ) + ":"
 
         for c in self.choices:
             if c.word == beg:
                 f += "    // " + beg
-                if c.next != None:
-                    c.next.write( f )
+                c.next.write( f, path )
                 return
 
         m = {}
@@ -87,72 +87,94 @@ class Choice( ParseItem ):
             l = prefix + cvar( beg + p )
             out.add_cnt( l )
             f += "    if ( *data == '" + p + "' ) { if ( ++data >= end ) goto c_" + l + "; goto l_" + l + "; }"
-        f += "    if ( *data != '" + k[ 0 ] + "' ) " + self._fallback( beg, prefix )
+        f += "    if ( *data != '" + k[ 0 ] + "' ) " + self._fallback( path )
         l = prefix + cvar( beg + k[ 0 ] )
         out.add_cnt( l )
         f += "    if ( ++data >= end ) goto c_" + l + ";"
  
  
         for p in k:
-            self._write_rec( f, prefix, beg + p )
+            self._write_rec( f, prefix, beg + p, path )
             
  
 class String( ParseItem ):
     def __init__( self, varname ):
         self.varname = varname
+        self.next = None
         self.end = ' '
     
-    def write( self, f ):
+    def write( self, f, path ):
         l = self.new_prefix()
+        f.add_cnt( l + "_cnt" ) 
+        endtest = string.join( [ "*data == '" + v + "'" for v in self.end ], " or " )
         f += """
-a_{l}_beg:
-    ++data;
-b_{l}_beg:
-    if ( data >= end ) goto c_{l}_cnt;
-l_{l}_beg: // first call
-    {varname}_data = data;
-    while ( true ) {
-        if ( *data == ' ' ) {
-            {varname}_size = data - {varname}_data;
-            *data = 0;
-            goto e_{l};
-        }
-        if ( ++data == end ) {
-            const char *old = {varname}_data;
-            {varname}_size = data - {varname}_data;
-            {varname}_rese = 2 * size_buff;
-            {varname}_data = (char *)malloc( {varname}_rese );
-            memcpy( {varname}_data, old, {varname}_size );
-            goto c_{l}_cnt;
-        }
-    }
+            l_{l}_beg: // first call
+                {varname}.data = data;
+                while ( true ) {
+                    if ( {endtest} ) {
+                        {varname}.size = data - {varname}.data;
+                        *data = 0;
+                        goto e_{l};
+                    }
+                    if ( ++data == end ) {
+                        {varname}.size = data - {varname}.data;
+                        {varname}.own_copy( 2 * size_buff );
+                        goto c_{l}_cnt;
+                    }
+                }
 
+            l_{l}_cnt: // cont
+                while ( true ) {
+                    if ( {varname}.size == {varname}.rese ) {
+                        char *old = {varname}.data;
+                        {varname}.data = (char *)malloc( {varname}.rese *= 2 );
+                        memcpy( {varname}.data, old, {varname}.size );
+                        free( old );
+                    }
 
-l_{l}_cnt: // cont
-    while ( true ) {
-        if ( {varname}_size == {varname}_rese ) {
-            char *old = {varname}_data;
-            {varname}_data = (char *)malloc( {varname}_rese *= 2 );
-            memcpy( {varname}_data, old, {varname}_size );
-            free( old );
-        }
+                    if ( {endtest} ) {
+                        {varname}.data[ {varname}.size ] = 0;
+                        goto e_{l};
+                    }
+                    {varname}.data[ {varname}.size++ ] = *data;
 
-        if ( *data == ' ' ) {
-            {varname}_data[ {varname}_size ] = 0;
-            goto e_{l};
-        }
-        {varname}_data[ {varname}_size++ ] = *data;
+                    if ( ++data == end )
+                        goto c_{l}_cnt;
+                }
 
-        if ( ++data == end )
-            goto c_{l}_cnt;
-    }
+            e_{l}:""". \
+            replace( "{l}", l ). \
+            replace( "{varname}", self.varname ). \
+            replace( "\n            ", "\n" ). \
+            replace( "{endtest}", endtest )
+        self.next.write( f, path )
 
-e_{l}:
-    if ( req_type == GET ) {
-        inp_cont = 0;
-        return req();
-    }
-""".replace( "{l}", l )
+class Number( ParseItem ):
+    def __init__( self, varname ):
+        self.varname = varname
+    
+    def write( self, f, path ):
+        l = self.new_prefix()
+        f.add_cnt( l ) 
+        f += """
+            l_{l}:
+                if ( *data < '0' or *data > '9' ) goto e_{l};
+                {varname} = 10 * {varname} + ( *data - '0' );
+                if ( ++data >= end ) goto c_{l};
+                goto l_{l};
+            e_{l}:""". \
+            replace( "{l}", l ). \
+            replace( "\n            ", "\n" ). \
+            replace( "{varname}", self.varname )
+
+            
+class TxtItem( ParseItem ):
+    def __init__( self, txt ):
+        self.txt = txt
+    
+    def write( self, f, path ):
+        #l = self.new_prefix()
+        f += self.txt
 
 choice = Choice()
 choice.fallback = "goto e_400;"
@@ -160,10 +182,12 @@ for n in [ ( "GET ", 5 ), ( "POST ", 3 ), ( "PUT ", 1 ) ]: # , "DELETE ", "TRACE
     w = Word( n[ 0 ], n[ 1 ] )
     choice += w
     
-    s = String()
+    s = String( "url" )
     w.next = s
+    
+    s.next = TxtItem( "    return req_" + n[ 0 ][ : -1 ] + "();" )
 
-out = Out( sys.stdout )
+out = Out( file( "src/Celo/HttpRequest_gen.h", "w" ) )
 choice.write( out )
 out.finalize()
  

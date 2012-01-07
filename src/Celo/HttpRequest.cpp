@@ -9,12 +9,10 @@
 
 const int size_buff = 1024;
 
-HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), inp_cont( 0 ), url_rese( 0 ), content_length( 0 ) {
+HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), inp_cont( 0 ), content_length( 0 ) {
 }
 
 HttpRequest::~HttpRequest() {
-    if ( url_rese )
-        free( url_data );
 }
 
 void HttpRequest::inp() {
@@ -47,7 +45,17 @@ bool HttpRequest::end() {
     return EventObj_WO::end() and not inp_cont;
 }
 
-void HttpRequest::req() {
+void HttpRequest::req_GET() {
+    // not found
+    error_404();
+}
+
+void HttpRequest::req_PUT() {
+    // not found
+    error_404();
+}
+
+void HttpRequest::req_POST() {
     // not found
     error_404();
 }
@@ -113,83 +121,12 @@ void HttpRequest::inp( char *data, const char *end ) {
     if ( inp_cont )
         goto *inp_cont;
 
-// ----------------- REQUEST TYPE -----------------
-#include "HttpRequest_read_req.h"
+    #include "HttpRequest_gen.h"
 
-// ----------------- URL -----------------
-a_url_beg:
-    ++data;
-b_url_beg:
-    if ( data >= end ) goto c_url_beg;
-l_url_beg: // URL, first call
-    url_data = data;
-    while ( true ) {
-        if ( *data == ' ' ) {
-            url_size = data - url_data;
-            *data = 0;
-            goto e_url;
-        }
-        if ( ++data == end ) {
-            const char *old = url_data;
-            url_size = data - url_data;
-            url_rese = 2 * size_buff;
-            url_data = (char *)malloc( url_rese );
-            memcpy( url_data, old, url_size );
-            goto c_url_cnt;
-        }
-    }
-
-
-l_url_cnt: // URL, cont
-    while ( true ) {
-        if ( url_size == url_rese ) {
-            char *old = url_data;
-            url_data = (char *)malloc( url_rese *= 2 );
-            memcpy( url_data, old, url_size );
-            free( old );
-        }
-
-        if ( *data == ' ' ) {
-            url_data[ url_size ] = 0;
-            goto e_url;
-        }
-        url_data[ url_size++ ] = *data;
-
-        if ( ++data == end )
-            goto c_url_cnt;
-    }
-
-e_url:
-    if ( req_type == GET ) {
-        inp_cont = 0;
-        return req();
-    }
-
-// -------------- Header Fields --------------
-#include "HttpRequest_header_fields.h"
-
-// Content-Length
-a_read_cl:
-    ++data;
-b_read_cl:
-    if ( data >= end ) goto c_read_cl;
-l_read_cl:
-    if ( *data < '0' or *data > '9' ) goto l_header_fields_;
-    content_length = 10 * content_length + ( *data - '0' );
-    goto a_read_cl;
-
-// ----------------- ERRORS ------------------
-
-// c_...
-#include "HttpRequest_conts.h"
-
-// e_...
-#define ERR( NUM, MSG ) e_##NUM: inp_cont = 0; return error_##NUM();
-#include "ErrorCodes.h"
-#undef ERR
-
-l_user:
-    return;
+    // e_...
+    #define ERR( NUM, MSG ) e_##NUM: inp_cont = 0; return error_##NUM();
+    #include "ErrorCodes.h"
+    #undef ERR
 }
 
 #define ERR( NUM, MSG ) \
