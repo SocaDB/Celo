@@ -98,55 +98,56 @@ class Choice( ParseItem ):
             
  
 class String( ParseItem ):
-    def __init__( self ):
+    def __init__( self, varname ):
+        self.varname = varname
         self.end = ' '
     
     def write( self, f ):
         l = self.new_prefix()
         f += """
-a_{l}:
+a_{l}_beg:
     ++data;
-b_{l}:
-    if ( data >= end ) goto c_{l};
-l_{l}: // URL, first call
-    url_data = data;
+b_{l}_beg:
+    if ( data >= end ) goto c_{l}_cnt;
+l_{l}_beg: // first call
+    {varname}_data = data;
     while ( true ) {
         if ( *data == ' ' ) {
-            url_size = data - url_data;
+            {varname}_size = data - {varname}_data;
             *data = 0;
-            goto e_url;
+            goto e_{l};
         }
         if ( ++data == end ) {
-            const char *old = url_data;
-            url_size = data - url_data;
-            url_rese = 2 * size_buff;
-            url_data = (char *)malloc( url_rese );
-            memcpy( url_data, old, url_size );
-            goto c_url_cnt;
+            const char *old = {varname}_data;
+            {varname}_size = data - {varname}_data;
+            {varname}_rese = 2 * size_buff;
+            {varname}_data = (char *)malloc( {varname}_rese );
+            memcpy( {varname}_data, old, {varname}_size );
+            goto c_{l}_cnt;
         }
     }
 
 
-l_url_cnt: // URL, cont
+l_{l}_cnt: // cont
     while ( true ) {
-        if ( url_size == url_rese ) {
-            char *old = url_data;
-            url_data = (char *)malloc( url_rese *= 2 );
-            memcpy( url_data, old, url_size );
+        if ( {varname}_size == {varname}_rese ) {
+            char *old = {varname}_data;
+            {varname}_data = (char *)malloc( {varname}_rese *= 2 );
+            memcpy( {varname}_data, old, {varname}_size );
             free( old );
         }
 
         if ( *data == ' ' ) {
-            url_data[ url_size ] = 0;
-            goto e_url;
+            {varname}_data[ {varname}_size ] = 0;
+            goto e_{l};
         }
-        url_data[ url_size++ ] = *data;
+        {varname}_data[ {varname}_size++ ] = *data;
 
         if ( ++data == end )
-            goto c_url_cnt;
+            goto c_{l}_cnt;
     }
 
-e_url:
+e_{l}:
     if ( req_type == GET ) {
         inp_cont = 0;
         return req();
