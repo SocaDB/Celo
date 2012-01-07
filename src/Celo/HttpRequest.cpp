@@ -114,9 +114,7 @@ void HttpRequest::inp( char *data, const char *end ) {
         goto *inp_cont;
 
 // ----------------- REQUEST TYPE -----------------
-#define FALLBACK goto e_400
 #include "HttpRequest_read_req.h"
-#undef  FALLBACK
 
 // ----------------- URL -----------------
 a_url_beg:
@@ -168,19 +166,17 @@ e_url:
     }
 
 // -------------- Header Fields --------------
-#define FALLBACK goto l_header_fields_;
-#define PROC_a_header_fields__nContent_mLength_d_s \
-    ++data
-#define PROC_b_header_fields__nContent_mLength_d_s \
-        if ( data >= end ) goto c_ContentLength_read; \
-    l_ContentLength_read: \
-        if ( *data < '0' or *data > '9' ) goto l_header_fields_; \
-        content_length = 10 * content_length + ( *data - '0' ); \
-        goto a_header_fields__nContent_mLength_d_s;
 #include "HttpRequest_header_fields.h"
-#undef  FALLBACK
 
 // Content-Length
+a_read_cl:
+    ++data;
+b_read_cl:
+    if ( data >= end ) goto c_read_cl;
+l_read_cl:
+    if ( *data < '0' or *data > '9' ) goto l_header_fields_;
+    content_length = 10 * content_length + ( *data - '0' );
+    goto a_read_cl;
 
 // ----------------- ERRORS ------------------
 

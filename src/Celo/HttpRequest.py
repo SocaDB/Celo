@@ -16,17 +16,15 @@ def cstr( n ):
     if n == "\r": return "\\r"
     return n
     
-def lookup_rec( f, labels, names, prefix, offset ):
+def lookup_rec( f, labels, names, prefix, offset, proc_map, fallback ):
     crefix = cvar( prefix )
     labels.append( crefix )
     
     m = {}
     for i in names:
         if not len( i ):
-            f.write( "a_" + crefix + ":\n" )
-            f.write( "    PROC_a_" + crefix + ";\n" )
-            f.write( "b_" + crefix + ":\n" )
-            f.write( "    PROC_b_" + crefix + ";\n\n" )
+            f.write( "a_" + crefix + ": " + proc_map[ prefix ][ 0 ] + "\n" )
+            f.write( "b_" + crefix + ": " + proc_map[ prefix ][ 1 ] + "\n" )
             return
         if not ( i[ 0 ] in m ):
             m[ i[ 0 ] ] = []
@@ -61,22 +59,26 @@ def lookup_rec( f, labels, names, prefix, offset ):
         f.write( "    switch ( *data ) {\n" )
         for key in m.keys():
             f.write( "    case '" + cstr( key ) + "': goto a_" + crefix + key + ";\n" )
-        f.write( "    default: { FALLBACK; }\n" )
+        f.write( "    default: { " + fallback + " }\n" )
         f.write( "    }\n" )
     else:
         k = m.keys()
         for key in k[ 1 : ]:
             f.write( "    if ( *data == '" + cstr( key ) + "' ) goto a_" + crefix + key + ";\n" )
-        f.write( "    if ( *data != '" + cstr( k[ 0 ] ) + "' ) { FALLBACK; }\n" )
+        f.write( "    if ( *data != '" + cstr( k[ 0 ] ) + "' ) { " + fallback + " }\n" )
         
     for key, val in m.items():
-        lookup_rec( f, labels, val, prefix + key, offset + 1 )
+        lookup_rec( f, labels, val, prefix + key, offset + 1, proc_map, fallback )
 
-def lookup( f, names, prefix = "", offset = -100000 ):
+def lookup( f, names, fallback, prefix = "", offset = -100000 ):
     labels = []
-    
+
+    proc_map = {}
+    for name, procs in names.items():
+        proc_map[ prefix + name ] = procs
+
     # l_...:
-    lookup_rec( f, labels, names, prefix, offset )
+    lookup_rec( f, labels, names.keys(), prefix, offset, proc_map, fallback )
     
     # c_...:
     for l in labels:
@@ -85,20 +87,23 @@ def lookup( f, names, prefix = "", offset = -100000 ):
         
 # req read
 fl = file( "src/Celo/HttpRequest_read_req.h", "w" )
-nr = [ "GET ", "POST ", "PUT ", "DELETE ", "TRACE ", "OPTIONS ", "CONNECT ", "HEAD " ]
-for n in nr:
-    fl.write( "#define PROC_a_" + cvar( n ) + " req_type = " + n[ : -1 ] + "; goto a_url_beg\n" )
-    fl.write( "#define PROC_b_" + cvar( n ) + " req_type = " + n[ : -1 ] + "; goto b_url_beg\n" )
-lookup( fl, nr, offset = 0 )
+mr = {}
+for n in [ "GET ", "POST ", "PUT ", "DELETE ", "TRACE ", "OPTIONS ", "CONNECT ", "HEAD " ]:
+    mr[ n ] = [ " req_type = " + n[ : -1 ] + "; goto " + o + "_url_beg;" for o in "ab" ]
+lookup( fl, mr, "goto e_400;", offset = 0 )
 
 # header_fields
 fl = file( "src/Celo/HttpRequest_header_fields.h", "w" )
-lookup( fl, [ "\nContent-Length: %", "\n\n", "\n\r\n" ], prefix = "header_fields_" )
+mr = {
+    "\nContent-Length: " : [ "goto a_read_cl;", "goto b_read_cl;" ],
+    "\n\n" : [ "goto l_user;", "goto l_user;" ],
+    "\n\r\n" : [ "goto l_user;", "goto l_user;" ]
+}
+lookup( fl, mr, "goto l_header_fields_;", prefix = "header_fields_" )
 
 
 # conts
-l = []
-l += string.split( "url_beg url_cnt header_fields header_fields__n_n ContentLength_read header_fields__n_r" )
+l = string.split( "url_beg url_cnt read_cl" )
 
 f = file( "src/Celo/HttpRequest_conts.h", "w" )
 for i in l:
