@@ -26,20 +26,20 @@ class Out:
         self.f.write( line + "\n" )
         return self
 
-    def add_cnt( self, c ):
-        self.l.append( c )
-
-    def add_str( self, var ):
-        if not ( var in self.s ):
-            self.s.append( var )
+    def add_cnt( self, c, varo ):
+        self.l.append( ( c, varo ) )
 
     def finalize( self ):
-        for c in self.l:
-            self += "c_" + c + ": inp_cont = &&l_" + c + "; goto str_cpy_if_needed;"
-        self += "str_cpy_if_needed:"
-        for v in self.s:
-            self += "    " + v + ".make_own_copy_if_not_the_case();"
-        self += "    return;"
+        mvar = {}
+        for c, varo in self.l:
+            kvar = "mocintc_" + string.join( varo, "__" )
+            mvar[ kvar ] = varo
+            self += "c_" + c + ": inp_cont = &&l_" + c + "; goto " + kvar + ";"
+        for kvar, varo in mvar.items():
+            self += kvar + ":"
+            for v in varo:
+                self += "    " + v + ".make_own_copy_if_not_the_case();"
+            self += "    return;"
 
 class Word:
     def __init__( self, word, prob = 1 ):
@@ -66,22 +66,22 @@ class Choice( ParseItem ):
         self.choices.append( w )
         return self
     
-    def write( self, f, path = [] ):
+    def write( self, f, path = [], varo = [] ):
         p = self.new_prefix()
-        self._write_rec( f, p, "", path + [ p ] )
+        self._write_rec( f, p, "", path + [ p ], varo )
         
     def _fallback( self, path ):
         if type( self.fallback ) == str:
             return self.fallback
         return "goto l_" + path[ self.fallback ] + ";"
         
-    def _write_rec( self, f, prefix, beg, path ):
+    def _write_rec( self, f, prefix, beg, path, varo ):
         f += "l_" + prefix + cvar( beg ) + ":"
 
         for c in self.choices:
             if c.word == beg:
                 f += "    // " + beg
-                c.next.write( f, path )
+                c.next.write( f, path, varo )
                 return
 
         m = {}
@@ -94,16 +94,16 @@ class Choice( ParseItem ):
 
         for p in reversed( k[ 1: ] ):
             l = prefix + cvar( beg + p )
-            out.add_cnt( l )
+            out.add_cnt( l, varo )
             f += "    if ( *data == '" + p + "' ) { if ( ++data >= end ) goto c_" + l + "; goto l_" + l + "; }"
         f += "    if ( *data != '" + k[ 0 ] + "' ) " + self._fallback( path )
         l = prefix + cvar( beg + k[ 0 ] )
-        out.add_cnt( l )
+        out.add_cnt( l, varo )
         f += "    if ( ++data >= end ) goto c_" + l + ";"
  
  
         for p in k:
-            self._write_rec( f, prefix, beg + p, path )
+            self._write_rec( f, prefix, beg + p, path, varo )
             
  
 class String( ParseItem ):
@@ -112,10 +112,9 @@ class String( ParseItem ):
         self.next = None
         self.end = ' '
     
-    def write( self, f, path ):
+    def write( self, f, path = [], varo = [] ):
         l = self.new_prefix()
-        f.add_cnt( l + "_cnt" )
-        f.add_str( self.varname )
+        f.add_cnt( l + "_cnt", varo + [ self.varname ] )
         endtest = string.join( [ "*data == '" + v + "'" for v in self.end ], " or " )
         f += """
             l_{l}_beg: // first call
@@ -148,15 +147,15 @@ class String( ParseItem ):
             replace( "{varname}", self.varname ). \
             replace( "\n            ", "\n" ). \
             replace( "{endtest}", endtest )
-        self.next.write( f, path )
+        self.next.write( f, path, varo + [ self.varname ] )
 
 class Number( ParseItem ):
     def __init__( self, varname ):
         self.varname = varname
     
-    def write( self, f, path ):
+    def write( self, f, path = [], varo = [] ):
         l = self.new_prefix()
-        f.add_cnt( l ) 
+        f.add_cnt( l, varo )
         f += """
             l_{l}:
                 if ( *data < '0' or *data > '9' ) goto e_{l};
@@ -173,7 +172,7 @@ class TxtItem( ParseItem ):
     def __init__( self, txt ):
         self.txt = txt
     
-    def write( self, f, path ):
+    def write( self, f, path, varo ):
         #l = self.new_prefix()
         f += self.txt
 

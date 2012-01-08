@@ -120,21 +120,23 @@ l_4__cnt: // cont
 
 e_4_:
     inp_cont = 0; return req_PUT();
-c_1_P: inp_cont = &&l_1_P; goto str_cpy_if_needed;
-c_1_G: inp_cont = &&l_1_G; goto str_cpy_if_needed;
-c_1_GE: inp_cont = &&l_1_GE; goto str_cpy_if_needed;
-c_1_GET: inp_cont = &&l_1_GET; goto str_cpy_if_needed;
-c_1_GET_s: inp_cont = &&l_1_GET_s; goto str_cpy_if_needed;
-c_2__cnt: inp_cont = &&l_2__cnt; goto str_cpy_if_needed;
-c_1_PU: inp_cont = &&l_1_PU; goto str_cpy_if_needed;
-c_1_PO: inp_cont = &&l_1_PO; goto str_cpy_if_needed;
-c_1_POS: inp_cont = &&l_1_POS; goto str_cpy_if_needed;
-c_1_POST: inp_cont = &&l_1_POST; goto str_cpy_if_needed;
-c_1_POST_s: inp_cont = &&l_1_POST_s; goto str_cpy_if_needed;
-c_3__cnt: inp_cont = &&l_3__cnt; goto str_cpy_if_needed;
-c_1_PUT: inp_cont = &&l_1_PUT; goto str_cpy_if_needed;
-c_1_PUT_s: inp_cont = &&l_1_PUT_s; goto str_cpy_if_needed;
-c_4__cnt: inp_cont = &&l_4__cnt; goto str_cpy_if_needed;
-str_cpy_if_needed:
+c_1_P: inp_cont = &&l_1_P; goto mocintc_;
+c_1_G: inp_cont = &&l_1_G; goto mocintc_;
+c_1_GE: inp_cont = &&l_1_GE; goto mocintc_;
+c_1_GET: inp_cont = &&l_1_GET; goto mocintc_;
+c_1_GET_s: inp_cont = &&l_1_GET_s; goto mocintc_;
+c_2__cnt: inp_cont = &&l_2__cnt; goto mocintc_url;
+c_1_PU: inp_cont = &&l_1_PU; goto mocintc_;
+c_1_PO: inp_cont = &&l_1_PO; goto mocintc_;
+c_1_POS: inp_cont = &&l_1_POS; goto mocintc_;
+c_1_POST: inp_cont = &&l_1_POST; goto mocintc_;
+c_1_POST_s: inp_cont = &&l_1_POST_s; goto mocintc_;
+c_3__cnt: inp_cont = &&l_3__cnt; goto mocintc_url;
+c_1_PUT: inp_cont = &&l_1_PUT; goto mocintc_;
+c_1_PUT_s: inp_cont = &&l_1_PUT_s; goto mocintc_;
+c_4__cnt: inp_cont = &&l_4__cnt; goto mocintc_url;
+mocintc_url:
     url.make_own_copy_if_not_the_case();
+    return;
+mocintc_:
     return;
