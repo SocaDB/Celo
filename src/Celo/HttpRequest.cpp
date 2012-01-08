@@ -50,12 +50,13 @@ void HttpRequest::req_GET() {
     error_404();
 }
 
-void HttpRequest::req_PUT() {
+void HttpRequest::req_PUT( char *beg, int len ) {
     // not found
     error_404();
 }
 
-void HttpRequest::req_POST() {
+void HttpRequest::req_POST( char *beg, int len ) {
+    write( 0, beg, len );
     // not found
     error_404();
 }
