@@ -16,6 +16,7 @@ HttpRequest::~HttpRequest() {
 }
 
 void HttpRequest::inp() {
+    PRINT( "ruff" );
     char buff[ size_buff ];
     while ( true ) {
         ST ruff = read( fd, buff, size_buff );
@@ -25,6 +26,7 @@ void HttpRequest::inp() {
             inp_cont = 0;
             return;
         }
+        write( 0, buff, ruff );
 
         // at the end ?
         if ( ruff == 0 ) {
@@ -50,15 +52,14 @@ void HttpRequest::req_GET() {
     error_404();
 }
 
-void HttpRequest::req_PUT( char *beg, int len ) {
-    // not found
-    error_404();
+void HttpRequest::req_PUT( char *beg, ST len ) {
+    // forbidden
+    error_403();
 }
 
-void HttpRequest::req_POST( char *beg, int len ) {
-    write( 0, beg, len );
-    // not found
-    error_404();
+void HttpRequest::req_POST( char *beg, ST len ) {
+    // forbidden
+    error_403();
 }
 
 bool HttpRequest::send_file( const char *url ) {

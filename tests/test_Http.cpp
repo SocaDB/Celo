@@ -8,11 +8,11 @@
 
 struct MyHttpRequest : public HttpRequest_FileServer {
     MyHttpRequest( int fd ) : HttpRequest_FileServer( fd ) {}
-    virtual void req() {
-        PRINT( url_data );
-        if ( strcmp( url_data, "/exit" ) == 0 )
+    virtual void req_GET() {
+        PRINT( url.data );
+        if ( strcmp( url.data, "/exit" ) == 0 )
             return ev_loop->stop();
-        HttpRequest_FileServer::req();
+        HttpRequest_FileServer::req_GET();
     }
 };
 

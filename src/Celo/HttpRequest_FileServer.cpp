@@ -3,9 +3,9 @@
 HttpRequest_FileServer::HttpRequest_FileServer( int fd ) : HttpRequest( fd ) {
 }
 
-void HttpRequest_FileServer::req() {
-    if ( send_file( url_data + 1 ) )
+void HttpRequest_FileServer::req_GET() {
+    if ( send_file( url.data + 1 ) )
         return;
 
-    HttpRequest::req();
+    HttpRequest::req_GET();
 }

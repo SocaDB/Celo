@@ -32,8 +32,8 @@ public:
 
     // HttpRequest methods that may be redefined
     virtual void req_GET(); ///< Called after parsing of the header. By default, look up for files in base_dir()
-    virtual void req_PUT( char *beg, int len ); ///< Called after parsing of the header. By default, look up for files in base_dir()
-    virtual void req_POST( char *beg, int len ); ///< Called after parsing of the header. By default, look up for files in base_dir()
+    virtual void req_PUT( char *beg, ST len ); ///< Called after parsing of the header. By default, look up for files in base_dir()
+    virtual void req_POST( char *beg, ST len ); ///< Called after parsing of the header. By default, look up for files in base_dir()
 
 protected:
     bool send_file( const char *url ); ///< return true of file exists

@@ -8,7 +8,7 @@
 class HttpRequest_FileServer : public HttpRequest {
 public:
     HttpRequest_FileServer( int fd );
-    virtual void req();
+    virtual void req_GET();
 };
 
 #endif // HTTPREQUEST_FILESERVER_H
