@@ -12,6 +12,7 @@ public:
     void stop(); ///< may called during an event to say that the infinite loop may stop.
 
     EventLoop &operator<<( class EventObj *ev_obj ); ///< add a event
+    void poll_out( class EventObj *ev_obj ); ///<
 
 protected:
     bool cnt; ///< continue ?

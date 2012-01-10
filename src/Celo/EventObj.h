@@ -16,6 +16,8 @@ public:
     virtual void hup(); ///< if closed
     virtual void rdy(); ///< called after installation of this in event loop
 
+    void poll_out(); ///< poll this for output in ev_loop
+
     class EventLoop *ev_loop;
     int              fd;
 };

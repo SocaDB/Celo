@@ -7,7 +7,7 @@ all: gen
 	${MCP} -ne ${PRG}
 
 gen:
-	python src/Celo/HttpRequest.py
+	python src/Celo/BasicHttpRequest.py
 
 exe:
 	${MCP} ${PRG}

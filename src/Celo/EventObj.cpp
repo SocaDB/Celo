@@ -1,4 +1,5 @@
 #include "StringHelp.h"
+#include "EventLoop.h"
 #include "EventObj.h"
 
 #include <sys/socket.h>
@@ -8,32 +9,27 @@ EventObj::EventObj( int fd ) : fd( fd ) {
 }
 
 EventObj::~EventObj() {
-    if ( fd > 0 )
+    if ( fd > 2 )
         close( fd );
 }
 
-void EventObj::inp() {
-    if ( end() )
-        delete this;
+bool EventObj::inp() {
+    return false;
 }
 
-void EventObj::out() {
-    if ( end() )
-        delete this;
+bool EventObj::out() {
+    return false;
 }
 
 void EventObj::err() {
-    delete this;
 }
 
 void EventObj::hup() {
-    delete this;
 }
 
 void EventObj::rdy() {
 }
 
-bool EventObj::end() {
-    return true;
+void EventObj::poll_out() {
+    ev_loop->poll_out( this );
 }
-

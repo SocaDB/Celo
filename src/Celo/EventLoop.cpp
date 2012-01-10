@@ -34,16 +34,25 @@ int EventLoop::run() {
         // for each event
         for( int n = 0; n < nfds; ++n ) {
             EventObj *rq = reinterpret_cast<EventObj *>( events[ n ].data.ptr );
-            if ( events[ n ].events & EPOLLIN ) // input data
-                rq->inp();
-            if ( events[ n ].events & EPOLLOUT ) // output data
-                rq->out();            
-            if ( events[ n ].events & EPOLLHUP ) // end of the bananas ?
-                rq->hup();
-            if ( events[ n ].events & EPOLLERR ) // error ?
-                rq->err();
+            bool cnt = false;
 
-            if ( rq->end() )
+            if ( events[ n ].events & EPOLLIN ) // input data
+                cnt |= rq->inp();
+
+            if ( events[ n ].events & EPOLLOUT ) // output data
+                cnt |= rq->out();
+
+            if ( events[ n ].events & EPOLLHUP ) { // end of the bananas ?
+                rq->hup();
+                cnt = false;
+            }
+
+            if ( events[ n ].events & EPOLLERR ) { // error ?
+                rq->err();
+                cnt = false;
+            }
+
+            if ( not cnt )
                 delete rq;
         }
     }
@@ -66,7 +75,7 @@ EventLoop &EventLoop::operator<<( class EventObj *ev_obj ) {
     ev_obj->ev_loop = this;
 
     epoll_event ev;
-    ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
+    ev.events = EPOLLIN | EPOLLET; // no EPOLLOUT by default (set up e.g. if write not completed)
     ev.data.u64 = 0; // for valgrind on 32 bits machines
     ev.data.ptr = ev_obj;
     if ( epoll_ctl( event_fd, EPOLL_CTL_ADD, ev_obj->fd, &ev ) == -1 )
@@ -75,3 +84,14 @@ EventLoop &EventLoop::operator<<( class EventObj *ev_obj ) {
     ev_obj->rdy();
     return *this;
 }
+
+void EventLoop::poll_out( class EventObj *ev_obj ) {
+    PRINT( ev_obj->fd );
+    epoll_event ev;
+    ev.events = EPOLLIN | EPOLLET | EPOLLOUT;
+    ev.data.u64 = 0; // for valgrind on 32 bits machines
+    ev.data.ptr = ev_obj;
+    if ( epoll_ctl( event_fd, EPOLL_CTL_MOD, ev_obj->fd, &ev ) == -1 )
+        perror( "epoll_ctl mod" );
+}
+

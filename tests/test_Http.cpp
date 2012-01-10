@@ -7,7 +7,8 @@
 #include <stdio.h>
 
 struct MyHttpRequest : public BasicHttpRequest_FileServer {
-    MyHttpRequest( int fd ) : HttpRequest_FileServer( fd ) {}
+    MyHttpRequest( int fd ) : BasicHttpRequest_FileServer( fd ) {
+    }
     virtual void req_GET() {
         PRINT( url.data );
         if ( strcmp( url.data, "/exit" ) == 0 )

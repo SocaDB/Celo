@@ -10,30 +10,29 @@ EventObj_WO::~EventObj_WO() {
 
 
 bool EventObj_WO::inp() {
+    const int size_buff = 2048;
     char buff[ size_buff ];
     while ( true ) {
         ST ruff = read( fd, buff, size_buff );
-        PRINT( ruff );
         if ( ruff < 0 ) {
             if ( errno == EAGAIN )
                 continue;
             return false;
         }
-        // write( 0, buff, ruff );
 
         // we need more data but we don't have ?
-        if ( ruff == 0 ) {
+        if ( ruff == 0 )
             return true;
-        }
 
         // parse
+        // write( 0, buff, ruff );
         if ( not inp( buff, buff + ruff ) )
             return false;
     }
 }
 
 bool EventObj_WO::out() {
-    while( prim_rem_out ) {
+    while ( prim_rem_out ) {
         if ( not prim_rem_out->write( this ) )
             return true;
 
@@ -83,9 +82,11 @@ void EventObj_WO::append( RemOutput *rem_out ) {
         last_rem_out->next = rem_out;
     last_rem_out = rem_out;
 
-    if ( not prim_rem_out )
+    if ( not prim_rem_out ) {
         prim_rem_out = rem_out;
-
+        //
+        poll_out();
+    }
 }
 
 void EventObj_WO::cl_rem() {

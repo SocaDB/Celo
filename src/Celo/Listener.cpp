@@ -1,3 +1,4 @@
+#include "StringHelp.h"
 #include "SocketHelp.h"
 #include "EventLoop.h"
 #include "Listener.h"
