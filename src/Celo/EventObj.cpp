@@ -33,3 +33,12 @@ void EventObj::rdy() {
 void EventObj::poll_out() {
     ev_loop->poll_out( this );
 }
+
+
+bool EventObj::want_poll_inp_at_the_beginning() const {
+    return true;
+}
+
+bool EventObj::want_poll_out_at_the_beginning() const {
+    return false;
+}

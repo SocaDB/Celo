@@ -16,6 +16,9 @@ public:
     virtual void hup(); ///< if closed
     virtual void rdy(); ///< called after installation of this in event loop
 
+    virtual bool want_poll_inp_at_the_beginning() const;
+    virtual bool want_poll_out_at_the_beginning() const;
+
     void poll_out(); ///< poll this for output in ev_loop
 
     class EventLoop *ev_loop;
