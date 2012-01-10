@@ -8,8 +8,7 @@
 class ListenerAncestor : public EventObj {
 public:
     ListenerAncestor( const char *port );
-    virtual void inp();
-    virtual bool end();
+    virtual bool inp();
 
     virtual EventObj *event_obj_factory( int fd ) = 0;
 };

@@ -1,34 +1,36 @@
-#include <Celo/HttpRequest.h>
+#include <Celo/BasicHttpRequest.h>
 #include <Celo/StringHelp.h>
 #include <stdlib.h>
 #include <string.h>
 
-void test_HttpRequest( const char *cata, int chunk_size ) {
-    char *data = strdup( cata );
+struct TestHttpRequest : BasicHttpRequest {
+    TestHttpRequest( const char *str, int chunk_size ) : BasicHttpRequest( 0 ) {
+        char *data = strdup( str );
 
-    HttpRequest rer( 0 );
-    for( int i = 0; i < strlen( data ); i += chunk_size ) {
-        rer.inp( data + i, data + std::min( i + chunk_size, (int)strlen( data ) ) );
-        if ( rer.end() )
-            break;
+        for( int i = 0; i < strlen( data ); i += chunk_size )
+            if ( not inp( data + i, data + std::min( i + chunk_size, (int)strlen( data ) ) ) )
+                break;
+        std::cout << " -> " << " u=" << url.data << " l=" << content_length << std::endl;
+
+        free( data );
     }
-    std::cout << " -> " << " u=" << rer.url.data << " l=" << rer.content_length << std::endl;
+};
 
-    free( data );
+void test_BasicHttpRequest( const char *cata, int chunk_size ) {
 }
 
-void test_HttpRequest( const char *data ) {
+void test_BasicHttpRequest( const char *data ) {
     std::cout << data << std::endl;
-    test_HttpRequest( data, 1024 );
-    test_HttpRequest( data, 1 );
+    TestHttpRequest( data, 1024 );
+    TestHttpRequest( data, 1 );
 }
 
 int main() {
-    //test_HttpRequest( "GET /rotiapum HTTP/1.1\npouet\n\n"  );
-    test_HttpRequest( "POST /nouille HTTP/1.1\nContent-Length: 3495\n\ncouillation" );
-    //test_HttpRequest( "POST /nouille HTTP/1.1\r\nContent-Length: 3495\r\n\r\n" );
-    //test_HttpRequest( "PUT /toto? HTTP/1.1"  );
-    //test_HttpRequest( "DELETE /yop HTTP/1.1"  );
+    //test_BasicHttpRequest( "GET /rotiapum HTTP/1.1\npouet\n\n"  );
+    test_BasicHttpRequest( "POST /nouille HTTP/1.1\nContent-Length: 3495\n\ncouillation" );
+    //test_BasicHttpRequest( "POST /nouille HTTP/1.1\r\nContent-Length: 3495\r\n\r\n" );
+    //test_BasicHttpRequest( "PUT /toto? HTTP/1.1"  );
+    //test_BasicHttpRequest( "DELETE /yop HTTP/1.1"  );
 }
 
 

@@ -8,8 +8,7 @@
 class TimerAncestor : public EventObj {
 public:
     TimerAncestor( double delay );
-    virtual void inp();
-    virtual bool end();
+    virtual bool inp();
 
     virtual void timeout() = 0;
 };

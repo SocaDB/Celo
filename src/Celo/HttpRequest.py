@@ -223,3 +223,38 @@ out += '#include "ErrorCodes.h"'
 out += '#undef ERR'
 out.finalize()
  
+#_:
+    #if ( end - data >= 4 ) {
+        #int val = *reinterpret_cast<const int *>( data );
+
+        ##if __BYTE_ORDER == __LITTLE_ENDIAN
+        #if ( val == 0x4954504f ) { data += 4; goto b_OPTI; }
+        #if ( val == 0x20544547 ) { data += 4; goto b_GET_s; }
+        #if ( val == 0x454c4544 ) { data += 4; goto b_DELE; }
+        #if ( val == 0x43415254 ) { data += 4; goto b_TRAC; }
+        #if ( val == 0x20545550 ) { data += 4; goto b_PUT_s; }
+        #if ( val == 0x44414548 ) { data += 4; goto b_HEAD; }
+        #if ( val == 0x4e4e4f43 ) { data += 4; goto b_CONN; }
+        #if ( val == 0x54534f50 ) { data += 4; goto b_POST; }
+        ##elif __BYTE_ORDER == __BIG_ENDIAN
+        #if ( val == 0x4f505449 ) { data += 4; goto b_OPTI; }
+        #if ( val == 0x47455420 ) { data += 4; goto b_GET_s; }
+        #if ( val == 0x44454c45 ) { data += 4; goto b_DELE; }
+        #if ( val == 0x54524143 ) { data += 4; goto b_TRAC; }
+        #if ( val == 0x50555420 ) { data += 4; goto b_PUT_s; }
+        #if ( val == 0x48454144 ) { data += 4; goto b_HEAD; }
+        #if ( val == 0x434f4e4e ) { data += 4; goto b_CONN; }
+        #if ( val == 0x504f5354 ) { data += 4; goto b_POST; }
+        ##else
+        #Unknown endianness
+        ##endif
+    #}
+
+    #switch ( *data ) {
+    #case 'C': goto a_C;
+    #case 'D': goto a_D;
+    #case 'G': goto a_G;
+    #case 'H': goto a_H;
+    #case 'O': goto a_O;
+    #case 'P': goto a_P;
+    #case 'T': goto a_T;

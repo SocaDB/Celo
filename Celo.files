@@ -16,8 +16,8 @@ tests/test_Observer.cpp
 tests/test_Http.cpp
 src/Celo/Listener.h
 src/Celo/Listener.cpp
-src/Celo/HttpRequest.h
-src/Celo/HttpRequest.cpp
+src/Celo/BasicHttpRequest.h
+src/Celo/BasicHttpRequest.cpp
 src/Celo/StringBlk.h
 src/Celo/StringBlk.cpp
 src/Celo/ErrorCodes.h
@@ -25,6 +25,6 @@ src/Celo/HttpRequest.py
 tests/test_HttpRequest.cpp
 src/Celo/EventObj_WO.h
 src/Celo/EventObj_WO.cpp
-src/Celo/HttpRequest_FileServer.h
-src/Celo/HttpRequest_FileServer.cpp
+src/Celo/BasicHttpRequest_FileServer.h
+src/Celo/BasicHttpRequest_FileServer.cpp
 src/Celo/StringCpn.h

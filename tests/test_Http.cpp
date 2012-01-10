@@ -1,4 +1,4 @@
-#include <Celo/HttpRequest_FileServer.h>
+#include <Celo/BasicHttpRequest_FileServer.h>
 #include <Celo/StringHelp.h>
 #include <Celo/EventLoop.h>
 #include <Celo/Listener.h>
@@ -6,13 +6,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct MyHttpRequest : public HttpRequest_FileServer {
+struct MyHttpRequest : public BasicHttpRequest_FileServer {
     MyHttpRequest( int fd ) : HttpRequest_FileServer( fd ) {}
     virtual void req_GET() {
         PRINT( url.data );
         if ( strcmp( url.data, "/exit" ) == 0 )
             return ev_loop->stop();
-        HttpRequest_FileServer::req_GET();
+        BasicHttpRequest_FileServer::req_GET();
     }
 };
 

@@ -54,8 +54,5 @@ void TimerAncestor::inp() {
         fprintf( stderr, "timer error\n" );
 
     timeout();
-}
-
-bool TimerAncestor::end() {
-    return false;
+    return true; // do not close fd (continue to wait for events)
 }

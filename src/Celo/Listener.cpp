@@ -5,15 +5,11 @@
 ListenerAncestor::ListenerAncestor( const char *port ) : EventObj( listening_socket( port ) ) {
 }
 
-void ListenerAncestor::inp() {
+bool ListenerAncestor::inp() {
     while ( true ) {
         int nd = accepting_socket( fd );
         if ( nd == -1 )
-            break;
+            return true; // continue to listen
         *ev_loop << event_obj_factory( nd );
     }
-}
-
-bool ListenerAncestor::end() {
-    return false;
 }
