@@ -1,4 +1,5 @@
 #include "HttpRequest_FileServer.h"
+#include "StringHelp.h"
 
 HttpRequest_FileServer::HttpRequest_FileServer( int fd ) : HttpRequest( fd ) {
 }

@@ -1,3 +1,6 @@
+if ( inp_cont )
+    goto *inp_cont;
+
 l_1_:
     if ( *data == 'P' ) { if ( ++data >= end ) goto c_1_P; goto l_1_P; }
     if ( *data != 'G' ) goto e_400;
@@ -39,7 +42,7 @@ l_2__cnt: // cont
     }
 
 e_2_:
-    inp_cont = 0; return req_GET();
+    req_GET(); return false;
 l_1_P:
     if ( *data == 'U' ) { if ( ++data >= end ) goto c_1_PU; goto l_1_PU; }
     if ( *data != 'O' ) goto e_400;
@@ -144,12 +147,12 @@ l_5_:
 e_5_:
     goto l_4_;
 l_4__n_n:
-    inp_cont = 0; return req_POST( data, end - data );
+    req_POST( data, end - data ); return false;
 l_4__n_r:
     if ( *data != '\n' ) goto l_4_;
     if ( ++data >= end ) goto c_4__n_r_n;
 l_4__n_r_n:
-    inp_cont = 0; return req_POST( data, end - data );
+    req_POST( data, end - data ); return false;
 l_1_PU:
     if ( *data != 'T' ) goto e_400;
     if ( ++data >= end ) goto c_1_PUT;
@@ -247,12 +250,16 @@ l_8_:
 e_8_:
     goto l_7_;
 l_7__n_n:
-    inp_cont = 0; return req_PUT( data, end - data );
+    req_PUT( data, end - data ); return false;
 l_7__n_r:
     if ( *data != '\n' ) goto l_7_;
     if ( ++data >= end ) goto c_7__n_r_n;
 l_7__n_r_n:
-    inp_cont = 0; return req_PUT( data, end - data );
+    req_PUT( data, end - data ); return false;
+
+#define ERR( NUM, MSG ) e_##NUM: error_##NUM(); return false;
+#include "ErrorCodes.h"
+#undef ERR
 c_1_P: inp_cont = &&l_1_P; goto mocintc_;
 c_1_G: inp_cont = &&l_1_G; goto mocintc_;
 c_1_GE: inp_cont = &&l_1_GE; goto mocintc_;

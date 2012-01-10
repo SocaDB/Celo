@@ -208,11 +208,18 @@ for req, prob in [ ( "GET ", 5 ), ( "POST ", 3 ), ( "PUT ", 1 ) ]: # , "DELETE "
         for ew in [ "\n\n", "\n\r\n" ]:
             en = Word( ew, 1 )
             c += en
-            en.next = TxtItem( "    inp_cont = 0; return req_" + req[ : -1 ] + "( data, end - data );" )
+            en.next = TxtItem( "    req_" + req[ : -1 ] + "( data, end - data ); return false;" )
     else:
-        s.next = TxtItem( "    inp_cont = 0; return req_" + req[ : -1 ] + "();" )
+        s.next = TxtItem( "    req_" + req[ : -1 ] + "(); return false;" )
 
 out = Out( file( "src/Celo/HttpRequest_gen.h", "w" ) )
+out += "if ( inp_cont )"
+out += "    goto *inp_cont;"
+out += ""
 choice.write( out )
+out += ""
+out += '#define ERR( NUM, MSG ) e_##NUM: error_##NUM(); return false;'
+out += '#include "ErrorCodes.h"'
+out += '#undef ERR'
 out.finalize()
  

@@ -4,21 +4,25 @@
 #include "EventObj.h"
 
 /**
-  EventObj with helper to output data
+  EventObj with helper methods for input / output of data
 */
 class EventObj_WO : public EventObj {
 public:
     EventObj_WO( int fd );
     virtual ~EventObj_WO();
 
-    virtual void out();
-    virtual bool end();
-
     // send data to fd
     void send( const char *data, ST size, bool end = true ); ///< from string data, data + size
     void send( int src, ST off, ST len ); ///< from file src
 
 protected:
+    virtual bool inp();
+    virtual bool out();
+
+    // to be redefined (in default inp is used)
+    virtual bool inp( char *data, const char *end ); ///< return true if we need more to read
+
+private:
     void append( struct RemOutput *rem_out );
     void cl_rem();
 

@@ -1,4 +1,4 @@
-#include "HttpRequest.h"
+#include "BasicHttpRequest.h"
 #include "StringHelp.h"
 #include <sys/stat.h>
 #include <unistd.h>
@@ -9,60 +9,28 @@
 
 const int size_buff = 1024;
 
-HttpRequest::HttpRequest( int fd ) : EventObj_WO( fd ), inp_cont( 0 ), content_length( 0 ) {
+BasicHttpRequest::BasicHttpRequest( int fd ) : EventObj_WO( fd ), inp_cont( 0 ), content_length( 0 ) {
 }
 
-HttpRequest::~HttpRequest() {
+BasicHttpRequest::~BasicHttpRequest() {
 }
 
-void HttpRequest::inp() {
-    PRINT( "ruff" );
-    char buff[ size_buff ];
-    while ( true ) {
-        ST ruff = read( fd, buff, size_buff );
-        if ( ruff < 0 ) {
-            if ( errno == EAGAIN )
-                continue;
-            inp_cont = 0;
-            return;
-        }
-        write( 0, buff, ruff );
-
-        // at the end ?
-        if ( ruff == 0 ) {
-            inp_cont = 0;
-            return;
-        }
-
-        // parse
-        inp( buff, buff + ruff );
-
-        //
-        if ( not inp_cont )
-            return;
-    }
-}
-
-bool HttpRequest::end() {
-    return EventObj_WO::end() and not inp_cont;
-}
-
-void HttpRequest::req_GET() {
+void BasicHttpRequest::req_GET() {
     // not found
     error_404();
 }
 
-void HttpRequest::req_PUT( char *beg, ST len ) {
+void BasicHttpRequest::req_PUT( char *beg, ST len ) {
     // forbidden
     error_403();
 }
 
-void HttpRequest::req_POST( char *beg, ST len ) {
+void BasicHttpRequest::req_POST( char *beg, ST len ) {
     // forbidden
     error_403();
 }
 
-bool HttpRequest::send_file( const char *url ) {
+bool BasicHttpRequest::send_file( const char *url ) {
     // open
     int src = open( url, O_RDONLY );
     if ( src < 0 ) {
@@ -91,7 +59,7 @@ bool HttpRequest::send_file( const char *url ) {
     return true;
 }
 
-void HttpRequest::send_head( const char *url ) {
+void BasicHttpRequest::send_head( const char *url ) {
     const char *end = url;
     while ( *end )
         ++end;
@@ -118,21 +86,12 @@ void HttpRequest::send_head( const char *url ) {
 }
 
 
-void HttpRequest::inp( char *data, const char *end ) {
-    // write( 0, data, end - data );
-    if ( inp_cont )
-        goto *inp_cont;
-
-    #include "HttpRequest_gen.h"
-
-    // e_...
-    #define ERR( NUM, MSG ) e_##NUM: inp_cont = 0; return error_##NUM();
-    #include "ErrorCodes.h"
-    #undef ERR
+bool BasicHttpRequest::inp( char *data, const char *end ) {
+    #include "BasicHttpRequest_gen.h"
 }
 
 #define ERR( NUM, MSG ) \
-    void HttpRequest::error_##NUM() { \
+    void BasicHttpRequest::error_##NUM() { \
         const char s[] = "HTTP/1.0 " #NUM " " MSG "\n\n"; \
         send( s, sizeof( s ) - 1 ); \
     }

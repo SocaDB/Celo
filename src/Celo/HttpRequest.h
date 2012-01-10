@@ -1,17 +1,13 @@
-#ifndef HTTPREQUEST_H
-#define HTTPREQUEST_H
+#ifndef BASICBasicHttpRequest_H
+#define BASICBasicHttpRequest_H
 
 #include "EventObj_WO.h"
 #include "StringCpn.h"
 
 /**
 */
-class HttpRequest : public EventObj_WO {
+class BasicHttpRequest : public EventObj_WO {
 public:
-    enum {
-        size_buff = 1024 - sizeof( void * ) - sizeof( EventObj )
-    };
-
     typedef enum {
         GET,
         POST,
@@ -23,36 +19,32 @@ public:
         CONNECT
     } ReqType;
 
-    HttpRequest( int fd );
-    virtual ~HttpRequest();
+    BasicHttpRequest( int fd );
+    virtual ~BasicHttpRequest();
 
-    // EventObj
-    virtual void inp(); ///< if input data
-    virtual bool end(); ///< return true if done
+protected:
+    virtual bool inp( char *data, const char *end );
 
-    // HttpRequest methods that may be redefined
+    // BasicHttpRequest methods that may be redefined
     virtual void req_GET(); ///< Called after parsing of the header. By default, look up for files in base_dir()
     virtual void req_PUT( char *beg, ST len ); ///< Called after parsing of the header. By default, look up for files in base_dir()
     virtual void req_POST( char *beg, ST len ); ///< Called after parsing of the header. By default, look up for files in base_dir()
 
-protected:
-    bool send_file( const char *url ); ///< return true of file exists
+    // helpers
+    bool send_file( const char *url ); ///< send http header and file data. return false if file does not exist
     void send_head( const char *url ); ///< send corresponding http header
-
-    void inp( char *data, const char *end ); ///< > 0 means continuation, < 0 means error, 0 means end
 
     #define ERR( NUM, MSG ) void error_##NUM();
     #include "ErrorCodes.h"
     #undef ERR
 
     // parsing context
-    void *inp_cont;       ///< for continuation
-    int   content_length; ///<
+    void *inp_cont; ///< for continuation
 
     // output from the parser
+    int       content_length; ///<
     StringCpn url;            ///< requested url
-
-    friend void test_HttpRequest( const char *data, int chunk_size );
+    StringCpn cookies;        ///< requested url
 };
 
-#endif // HTTPREQUEST_H
+#endif // BASICBasicHttpRequest_H

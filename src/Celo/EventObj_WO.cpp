@@ -8,19 +8,44 @@ EventObj_WO::~EventObj_WO() {
     cl_rem();
 }
 
-void EventObj_WO::out() {
+
+bool EventObj_WO::inp() {
+    char buff[ size_buff ];
+    while ( true ) {
+        ST ruff = read( fd, buff, size_buff );
+        PRINT( ruff );
+        if ( ruff < 0 ) {
+            if ( errno == EAGAIN )
+                continue;
+            return false;
+        }
+        // write( 0, buff, ruff );
+
+        // we need more data but we don't have ?
+        if ( ruff == 0 ) {
+            return true;
+        }
+
+        // parse
+        if ( not inp( buff, buff + ruff ) )
+            return false;
+    }
+}
+
+bool EventObj_WO::out() {
     while( prim_rem_out ) {
         if ( not prim_rem_out->write( this ) )
-            return;
+            return true;
 
         RemOutput *o = prim_rem_out;
         prim_rem_out = prim_rem_out->next;
         delete o;
     }
+    return false;
 }
 
-bool EventObj_WO::end() {
-    return EventObj::end() and not prim_rem_out;
+bool EventObj_WO::inp( char *data, const char *end ) {
+    return false;
 }
 
 void EventObj_WO::send( const char *data, ST size, bool end ) {

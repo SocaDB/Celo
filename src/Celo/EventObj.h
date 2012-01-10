@@ -2,7 +2,6 @@
 #define EVENTOBJ_H
 
 #include "Config.h"
-#include <string>
 
 /**
 */
@@ -11,12 +10,11 @@ public:
     EventObj( int fd );
     virtual ~EventObj();
 
-    virtual void inp(); ///< if input data.
-    virtual void out(); ///< if ready for output.
+    virtual bool inp(); ///< if input data. return true if needs of may accept more.
+    virtual bool out(); ///< if ready for output. return true if there is still remainging data to send.
     virtual void err(); ///< if error
     virtual void hup(); ///< if closed
     virtual void rdy(); ///< called after installation of this in event loop
-    virtual bool end(); ///< if input data
 
     class EventLoop *ev_loop;
     int              fd;

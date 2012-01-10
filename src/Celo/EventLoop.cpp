@@ -1,3 +1,4 @@
+#include "StringHelp.h"
 #include "EventLoop.h"
 #include "EventObj.h"
 
