@@ -44,10 +44,10 @@ static int make_timer_fd( double delay ) {
 }
 
 
-TimerAncestor::TimerAncestor( double delay ) : EventObj( make_timer_fd( delay ) ) {
+Timer::Timer( double delay ) : EventObj( make_timer_fd( delay ) ) {
 }
 
-void TimerAncestor::inp() {
+bool Timer::inp() {
     uint64_t exp;
     ssize_t s = read( fd, &exp, sizeof( uint64_t ) );
     if ( s != sizeof( uint64_t ) )

@@ -22,9 +22,11 @@ src/Celo/StringBlk.h
 src/Celo/StringBlk.cpp
 src/Celo/ErrorCodes.h
 src/Celo/BasicHttpRequest.py
-tests/test_HttpRequest.cpp
 src/Celo/EventObj_WO.h
 src/Celo/EventObj_WO.cpp
 src/Celo/BasicHttpRequest_FileServer.h
 src/Celo/BasicHttpRequest_FileServer.cpp
 src/Celo/StringCpn.h
+src/Celo/Signal_WO.h
+src/Celo/Timer_WO.h
+src/Celo/Listener_WO.h

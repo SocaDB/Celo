@@ -43,10 +43,6 @@ bool EventObj_WO::out() {
     return false;
 }
 
-bool EventObj_WO::inp( char *data, const char *end ) {
-    return false;
-}
-
 void EventObj_WO::send( const char *data, ST size, bool end ) {
     ST real = ::send( fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
     if ( real < 0 )

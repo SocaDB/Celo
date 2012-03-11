@@ -4,6 +4,7 @@
 
 #include <sys/signalfd.h>
 #include <signal.h>
+#include <unistd.h>
 #include <stdio.h>
 
 static int make_signal_fd( const int *sigs ) {
@@ -23,10 +24,10 @@ static int make_signal_fd( const int *sigs ) {
 }
 
 
-SignalAncestor::SignalAncestor( const int *sigs ) : EventObj( make_signal_fd( sigs ) ) {
+Signal::Signal( const int *sigs ) : EventObj( make_signal_fd( sigs ) ) {
 }
 
-bool SignalAncestor::inp() {
+bool Signal::inp() {
     signalfd_siginfo sig_info;
     while ( true ) {
         ssize_t s = read( fd, &sig_info, sizeof( sig_info ) );

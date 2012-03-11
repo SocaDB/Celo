@@ -10,7 +10,7 @@ public:
     EventObj( int fd );
     virtual ~EventObj();
 
-    virtual bool inp(); ///< if input data. return true if needs of may accept more.
+    virtual bool inp(); ///< if input data. return true if needs or may accept more.
     virtual bool out(); ///< if ready for output. return true if there is still remainging data to send.
     virtual void err(); ///< if error
     virtual void hup(); ///< if closed
@@ -19,7 +19,7 @@ public:
     virtual bool want_poll_inp_at_the_beginning() const;
     virtual bool want_poll_out_at_the_beginning() const;
 
-    void poll_out(); ///< poll this for output in ev_loop
+    void poll_out(); ///< add outpu polling for $this in ev_loop
 
     class EventLoop *ev_loop;
     int              fd;

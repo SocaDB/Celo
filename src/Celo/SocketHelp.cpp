@@ -31,10 +31,12 @@ int listening_socket( const char *port ) {
         if ( listen_fd < 0 )
             continue;
 
-        // no "Address already in use" error message + TCP_CORK
+        // no "Address already in use" error message
         int yes = 1;
         if ( setsockopt( listen_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof( yes ) ) == -1 )
             perror( "setsockopt" );
+
+        // TCP_CORK
         //if ( setsockopt( listen_fd, SOL_TCP, TCP_CORK, &yes, sizeof( yes ) ) == -1 )
         //    perror( "setsockopt" );
 

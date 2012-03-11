@@ -5,25 +5,12 @@
 
 /**
 */
-class TimerAncestor : public EventObj {
+class Timer : public EventObj {
 public:
-    TimerAncestor( double delay );
+    Timer( double delay );
     virtual bool inp();
 
     virtual void timeout() = 0;
-};
-
-
-/**
-*/
-template<class ObjWithTimeout>
-class Timer : public TimerAncestor {
-public:
-    Timer( ObjWithTimeout *obj, double delay ) : TimerAncestor( delay ), obj( obj ) {}
-    virtual void timeout() { obj->timeout(); }
-
-protected:
-    ObjWithTimeout *obj;
 };
 
 #endif // TIMER_H

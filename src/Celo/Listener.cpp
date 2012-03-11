@@ -3,10 +3,10 @@
 #include "EventLoop.h"
 #include "Listener.h"
 
-ListenerAncestor::ListenerAncestor( const char *port ) : EventObj( listening_socket( port ) ) {
+Listener::Listener( const char *port ) : EventObj( listening_socket( port ) ) {
 }
 
-bool ListenerAncestor::inp() {
+bool Listener::inp() {
     while ( true ) {
         int nd = accepting_socket( fd );
         if ( nd == -1 )

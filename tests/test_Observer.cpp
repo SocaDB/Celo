@@ -1,7 +1,7 @@
 #include <Celo/StringHelp.h>
 #include <Celo/EventLoop.h>
-#include <Celo/Signal.h>
-#include <Celo/Timer.h>
+#include <Celo/Signal_WO.h>
+#include <Celo/Timer_WO.h>
 #include <signal.h>
 #include <iostream>
 
@@ -22,9 +22,9 @@ int main() {
     MyObserver mo;
 
     int sigs[] = { SIGINT, SIGQUIT, SIGKILL, -1 };
-    el << new Signal<MyObserver>( &mo, sigs );
+    el << new Signal_WO<MyObserver>( &mo, sigs );
     
-    el << new Timer<MyObserver>( &mo, 1 );
+    el << new Timer_WO<MyObserver>( &mo, 1 );
 
     return el.run();
 }

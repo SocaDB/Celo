@@ -19,8 +19,8 @@ protected:
     virtual bool inp();
     virtual bool out();
 
-    // to be redefined (in default inp is used)
-    virtual bool inp( char *data, const char *end ); ///< return true if we need more to read
+    // to be redefined (if default inp is used)
+    virtual bool inp( char *beg, char *end ) = 0; ///< return true if we need more to read
 
 private:
     void append( struct RemOutput *rem_out );

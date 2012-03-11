@@ -6,42 +6,38 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct MyHttpRequest : public BasicHttpRequest_FileServer {
-    MyHttpRequest( int fd ) : BasicHttpRequest_FileServer( fd ) {
+struct MyHttpRequest : EventObj_WO {
+    MyHttpRequest( int fd ) : EventObj_WO( fd ) {
     }
-    virtual void req_GET() {
-        PRINT( url.data );
-        if ( strcmp( url.data, "/exit" ) == 0 )
-            return ev_loop->stop();
-        BasicHttpRequest_FileServer::req_GET();
+
+    virtual bool inp( char *beg, char *end ) {
+        write( 0, beg, end - beg );
+        std::cout.write( beg, end - beg );
+        return false;
+        //        if ( strcmp( url.data, "/exit" ) == 0 )
+        //            return ev_loop->stop();
+        //        BasicHttpRequest_FileServer::req_GET();
     }
 };
 
-struct MyObserver {
-    EventObj *event_obj_factory( int fd ) {
-        return new MyHttpRequest( fd );
-    }
-};
-
-struct MyListener : Listener<MyObserver> {
-    MyListener() : Listener<MyObserver>( &mo, "8899" ) {}
+struct MyListener : Listener {
+    MyListener() : Listener( "8899" ) {}
 
     virtual void rdy() {
         system( "google-chrome http://localhost:8899 &" );
     }
 
-    MyObserver mo;
+    virtual EventObj *event_obj_factory( int fd ) {
+        return new MyHttpRequest( fd );
+    }
 };
 
 int main() {
-    if ( int res = chdir( "html" ) ) {
-        perror( "chdir" );
-        return res;
-    }
+    EventLoop el;
 
     MyListener l;
-    EventLoop el;
     el << &l;
+
     return el.run();
 }
 
