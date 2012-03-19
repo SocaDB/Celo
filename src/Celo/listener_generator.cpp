@@ -111,19 +111,20 @@ int main( int argc, char **argv ) {
     c << "";
     c << "class _HttpRequest : public EventObj_HttpRequest {";
     c << "public:";
-    c << "    _HttpRequest( int fd, void * );";
+    c << "    _HttpRequest( int fd, void * ) : EventObj_HttpRequest( fd ) {}";
     c << "";
     c << "    #define SIPE_CHARP char *";
     c << "    #define SIPE_CLASS";
-    c << "    #include \"" << gen_file << "\"";
+    c << "    #include <" << gen_file << ">";
     c << "};";
     c << "";
-    c << "EventObj *factory( const char *port ) {";
+    c << "extern \"C\" Listener_WithLaunch *factory( const char *port ) {";
     c << "    return new Listener_Factory<_HttpRequest>( port, 0 );";
     c << "}";
     cpp.close();
 
     // cpp compilation
-    string cmd = "metil_comp -ICelo/src -O3 -dylib -o " + output + ".so " + cpp_file;
+    string cmd = "metil_comp -no-env -I. -ICelo/src -O3 -dylib -o " + output + " " + cpp_file;
+    PRINT( cmd );
     return system( cmd.c_str() );
 }
