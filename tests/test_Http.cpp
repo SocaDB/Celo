@@ -21,7 +21,7 @@ struct MyHttpRequest : EventObj_WO {
 };
 
 struct MyListener : Listener {
-    MyListener() : Listener( "8899" ) {}
+    MyListener( const char *port ) : Listener( port ) {}
 
     virtual void rdy() {
         system( "google-chrome http://localhost:8899 &" );
@@ -35,7 +35,7 @@ struct MyListener : Listener {
 int main() {
     EventLoop el;
 
-    MyListener l;
+    MyListener l( "8899" );
     el << &l;
 
     return el.run();
