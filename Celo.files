@@ -30,3 +30,16 @@ src/Celo/StringCpn.h
 src/Celo/Signal_WO.h
 src/Celo/Timer_WO.h
 src/Celo/Listener_WO.h
+../Sodat/Celo/src/Celo/Listener_Factory.h
+../Sodat/Celo/src/Celo/Listener_Factory.cpp
+src/Celo/Listener_WithLaunch.h
+src/Celo/Listener_WithLaunch.cpp
+src/Celo/EventObj_HttpRequest.h
+src/Celo/EventObj_HttpRequest.cpp
+src/Celo/EventObj_WP.h
+src/Celo/EventObj_WP.cpp
+src/Celo/DirectoryIterator.h
+src/Celo/DirectoryIterator.cpp
+src/Celo/StaticFileData.h
+src/Celo/StaticFileData.cpp
+src/Celo/MimeTypes.h

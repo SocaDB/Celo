@@ -9,6 +9,7 @@
     std::cout << "  " << #A << " ->\n" << (A) << std::endl
 
 inline bool is_a_number( char a ) { return a >= '0' and a <= '9'; }
+std::string url_encode( const std::string &str );
 
 
 #endif // STRINGHELP_H

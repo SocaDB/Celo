@@ -19,7 +19,7 @@ public:
     virtual bool want_poll_inp_at_the_beginning() const;
     virtual bool want_poll_out_at_the_beginning() const;
 
-    void poll_out(); ///< add outpu polling for $this in ev_loop
+    void poll_out(); ///< add output polling for $this in ev_loop
 
     class EventLoop *ev_loop;
     int              fd;

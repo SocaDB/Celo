@@ -1,34 +1,11 @@
 #include "RemOutput.h"
 #include "StringHelp.h"
 
-EventObj_WO::EventObj_WO( int fd ) : EventObj( fd ), prim_rem_out( 0 ), last_rem_out( 0 ) {
+EventObj_WO::EventObj_WO( int fd ) : EventObj_WP( fd ), prim_rem_out( 0 ), last_rem_out( 0 ) {
 }
 
 EventObj_WO::~EventObj_WO() {
     cl_rem();
-}
-
-
-bool EventObj_WO::inp() {
-    const int size_buff = 2048;
-    char buff[ size_buff ];
-    while ( true ) {
-        ST ruff = read( fd, buff, size_buff );
-        if ( ruff < 0 ) {
-            if ( errno == EAGAIN )
-                continue;
-            return false;
-        }
-
-        // we need more data but we don't have ?
-        if ( ruff == 0 )
-            return true;
-
-        // parse
-        // write( 0, buff, ruff );
-        if ( not inp( buff, buff + ruff ) )
-            return false;
-    }
 }
 
 bool EventObj_WO::out() {
@@ -43,7 +20,7 @@ bool EventObj_WO::out() {
     return false;
 }
 
-void EventObj_WO::send( const char *data, ST size, bool end ) {
+void EventObj_WO::send_cst( const char *data, ST size, bool end ) {
     ST real = ::send( fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
     if ( real < 0 )
         return cl_rem();
@@ -55,7 +32,11 @@ void EventObj_WO::send( const char *data, ST size, bool end ) {
     }
 }
 
-void EventObj_WO::send( int src, ST off, ST len ) {
+void EventObj_WO::send_cst( const char *data ) {
+    send_cst( data, strlen( data ) );
+}
+
+void EventObj_WO::send_fid( int src, ST off, ST len ) {
     off_t offset = off;
     ssize_t size = sendfile( fd, src, &offset, len );
     if ( size < 0 ) {
