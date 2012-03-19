@@ -1,15 +1,10 @@
-MCP = metil_comp -g3 --no-sep-libs -Isrc
-#PRG = tests/test_SpeedyLabel.cpp
+MCP = metil_comp -O3 -g3 --no-sep-libs -Isrc
 PRG = tests/test_Http.cpp
-#--exec-using "valgrind --leak-check=full"
 
 all: cmp
 
-cmp: gen
-	${MCP} -ne ${PRG}
+cmp:
+	${MCP} -ne -o listener_generator src/Celo/listener_generator.cpp
 
-gen:
-	python src/Celo/BasicHttpRequest.py
-
-exe: cmp
+exe:
 	${MCP} ${PRG}
