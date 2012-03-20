@@ -8,8 +8,11 @@
 class Listener : public EventObj {
 public:
     Listener( const char *port );
+    Listener( int fd );
+
     virtual bool inp();
 
+    // called after an accept
     virtual EventObj *event_obj_factory( int fd ) = 0;
 };
 

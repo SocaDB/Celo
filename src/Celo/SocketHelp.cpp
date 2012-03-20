@@ -12,6 +12,9 @@
 #include <netdb.h>
 
 int listening_socket( const char *port ) {
+    if ( not port )
+        return -1;
+
     // stolen from https://banu.com/blog/2/how-to-use-epoll-a-complete-example-in-c/
     addrinfo hints;
     memset( &hints, 0, sizeof( addrinfo ) );

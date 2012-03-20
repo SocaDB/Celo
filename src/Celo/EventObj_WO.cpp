@@ -36,6 +36,22 @@ void EventObj_WO::send_cst( const char *data ) {
     send_cst( data, strlen( data ) );
 }
 
+void EventObj_WO::send_str( const char *data, ST size, bool end ) {
+    ST real = ::send( fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
+    if ( real < 0 )
+        return cl_rem();
+
+    size -= real;
+    if ( size > 0 ) {
+        data += real;
+        append( new RemOutputDataCopy( data, size, end ) );
+    }
+}
+
+void EventObj_WO::send_str( const char *data ) {
+    send_str( data, strlen( data ) );
+}
+
 void EventObj_WO::send_fid( int src, ST off, ST len ) {
     off_t offset = off;
     ssize_t size = sendfile( fd, src, &offset, len );

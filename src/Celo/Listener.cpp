@@ -6,6 +6,9 @@
 Listener::Listener( const char *port ) : EventObj( listening_socket( port ) ) {
 }
 
+Listener::Listener( int fd ) : EventObj( fd ) {
+}
+
 bool Listener::inp() {
     while ( true ) {
         int nd = accepting_socket( fd );

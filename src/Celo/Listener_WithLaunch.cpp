@@ -12,7 +12,7 @@ static const char *_browser_list_prop[] = {
 static bool _has_cmd( const char *which, const char *exe ) {
     if ( which == 0 or exe == 0 )
         return false;
-    string cmd = string( which ) + ' ' + exe;
+    string cmd = string( which ) + ' ' + exe + " > /dev/null";
     return system( cmd.c_str() ) == 0;
 }
 

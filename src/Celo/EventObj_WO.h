@@ -12,8 +12,11 @@ public:
     virtual ~EventObj_WO();
 
     // send data to fd
-    void send_cst( const char *data, ST size, bool end = true ); ///< from string data, data + size
-    void send_cst( const char *data ); ///< from c_str data
+    void send_cst( const char *data, ST size, bool end = true ); ///< permanent data (no copy, no free)
+    void send_cst( const char *data ); ///< permanent data (no copy, no free)
+
+    void send_str( const char *data, ST size, bool end = true ); ///< data will be copied (if not sent in one shot) and freed
+    void send_str( const char *data ); ///< data will be copied (if not sent in one shot) and freed
 
     void send_fid( int src, ST off, ST len ); ///< from file id src
 

@@ -92,7 +92,7 @@ int main( int argc, char **argv ) {
 
     string gen_file = output + "_parser.h";
     for( int i = 0; i < sipe_v.size(); ++i ) {
-        if ( system( ( "which " + sipe_v[ i ] ).c_str() ) == 0 ) {
+        if ( system( ( "which " + sipe_v[ i ] + " > /dev/null" ).c_str() ) == 0 ) {
             string cmd = sipe_v[ i ] + " -o " + gen_file + " " + sipe_file;
             if ( int ret = system( cmd.c_str() ) )
                 return ret;
@@ -125,6 +125,6 @@ int main( int argc, char **argv ) {
 
     // cpp compilation
     string cmd = "metil_comp -no-env -I. -ICelo/src -O3 -dylib -o " + output + " " + cpp_file;
-    PRINT( cmd );
+    // PRINT( cmd );
     return system( cmd.c_str() );
 }

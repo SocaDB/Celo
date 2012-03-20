@@ -12,6 +12,10 @@ Mutex::~Mutex() {
     pthread_mutex_destroy( &mutex );
 }
 
+int Mutex::try_lock() {
+    pthread_mutex_trylock( &mutex );
+}
+
 void Mutex::lock() {
     pthread_mutex_lock( &mutex );
 }

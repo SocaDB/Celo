@@ -79,6 +79,7 @@ EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
             EPOLLET;
     ev.data.u64 = 0; // for valgrind on 32 bits machines
     ev.data.ptr = ev_obj;
+    PRINT( ev_obj->fd );
     if ( epoll_ctl( event_fd, EPOLL_CTL_ADD, ev_obj->fd, &ev ) == -1 )
         perror( "epoll_ctl add" );
 
@@ -86,13 +87,21 @@ EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
     return *this;
 }
 
+void EventLoop::mod( EventObj *ev_obj, bool want_out ) {
+    epoll_event ev;
+    ev.events = EPOLLIN | EPOLLET | ( want_out ? EPOLLOUT : 0 );
+    ev.data.u64 = 0; // for valgrind on 32 bits machines
+    ev.data.ptr = ev_obj;
+    if ( epoll_ctl( event_fd, EPOLL_CTL_MOD, ev_obj->fd, &ev ) == -1 )
+        perror( "epoll_ctl mod" );
+}
+
 void EventLoop::poll_out( EventObj *ev_obj ) {
-    PRINT( ev_obj->fd );
     epoll_event ev;
     ev.events = EPOLLIN | EPOLLET | EPOLLOUT;
     ev.data.u64 = 0; // for valgrind on 32 bits machines
     ev.data.ptr = ev_obj;
     if ( epoll_ctl( event_fd, EPOLL_CTL_MOD, ev_obj->fd, &ev ) == -1 )
-        perror( "epoll_ctl mod" );
+        perror( "epoll_ctl mod (poll out)" );
 }
 
