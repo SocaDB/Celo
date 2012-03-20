@@ -45,3 +45,7 @@ src/Celo/StaticFileData.cpp
 src/Celo/MimeTypes.h
 src/Celo/listener_generator.cpp
 src/Celo/StreamSep.h
+src/Celo/Thread.h
+src/Celo/Thread.cpp
+src/Celo/Mutex.h
+src/Celo/Mutex.cpp
