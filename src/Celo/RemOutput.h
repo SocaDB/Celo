@@ -14,7 +14,7 @@
 /**
 */
 struct RemOutput {
-    virtual bool write( EventObj_WO *obj ) = 0;
+    virtual bool write( EventObj_WO *obj ) = 0; ///< return true if done
     virtual ~RemOutput() {}
     RemOutput *next;
 };
@@ -26,17 +26,22 @@ struct RemOutputData : public RemOutput {
     }
 
     virtual bool write( EventObj_WO *obj ) {
-        ST real = ::send( obj->fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
-        if ( real < 0 ) {
-            delete obj;
-            return false;
-        }
-        size -= real;
-        if ( size > 0 ) {
+        while ( true ) {
+            ST real = ::send( obj->fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
+            if ( real < 0 ) { // error ?
+                if ( errno == EAGAIN )
+                    continue;
+                return true;
+            }
+
+            size -= real;
+            if ( not size ) // finished ?
+                return true;
+
+            if ( not real ) ///< there's remaining data but we have to wait for the next "out round"
+                return false;
             data += real;
-            return false;
         }
-        return true;
     }
 
     const char *data;
@@ -62,7 +67,7 @@ struct RemOutputDataCopy : public RemOutputData {
 /**
 */
 struct RemOutputFile : public RemOutput {
-    RemOutputFile( int src, off_t off, ST len ) : src( src ), off( off ), len( len ) {
+    RemOutputFile( int src, off_t off, ST size ) : src( src ), off( off ), size( size ) {
     }
 
     virtual ~RemOutputFile() {
@@ -70,19 +75,26 @@ struct RemOutputFile : public RemOutput {
     }
 
     virtual bool write( EventObj_WO *obj ) {
-        ssize_t size = sendfile( obj->fd, src, &off, len );
-        if ( size < 0 )
-            return errno != EAGAIN;
-        if ( not size )
-            return false;
+        while ( true ) {
+            ST real = sendfile( obj->fd, src, &off, size );
+            if ( real < 0 ) { // error ?
+                if ( errno == EAGAIN )
+                    continue;
+                return true;
+            }
 
-        len -= size;
-        return not len;
+            size -= real;
+            if ( not size ) // finished ?
+                return true;
+
+            if ( not real ) ///< there's remaining data but we have to wait for the next "out round"
+                return false;
+        }
     }
 
     int   src;
     off_t off;
-    ST    len;
+    ST    size;
 };
 
 #endif // REMOUTPUT_H

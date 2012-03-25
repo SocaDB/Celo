@@ -1,4 +1,5 @@
 #include "Listener_WithLaunch.h"
+#include "StringHelp.h"
 #include <stdlib.h>
 #include <sstream>
 using namespace std;
