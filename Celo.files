@@ -12,6 +12,7 @@ src/Celo/Signal.h
 src/Celo/Signal.cpp
 src/Celo/StringHelp.h
 src/Celo/StringHelp.cpp
+src/Celo/InstallDir.h
 tests/test_Observer.cpp
 tests/test_Http.cpp
 src/Celo/Listener.h
@@ -49,3 +50,4 @@ src/Celo/Thread.h
 src/Celo/Thread.cpp
 src/Celo/Mutex.h
 src/Celo/Mutex.cpp
+src/Celo/listener_generator_args.h

@@ -86,7 +86,7 @@ void StaticFileData::_fill_rec( const std::string &base, const std::string &url_
         // recursion
         std::string n = base + '/' + *i;
         if ( is_a_directory( n.c_str() ) ) {
-            _fill_rec( n, url_base + n + '/' );
+            _fill_rec( n, url_base + *i + '/' );
             continue;
         }
 

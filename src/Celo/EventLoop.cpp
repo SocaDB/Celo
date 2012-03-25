@@ -74,12 +74,11 @@ EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
 
     epoll_event ev;
     ev.events =
-            EPOLLIN  * ev_obj->want_poll_inp_at_the_beginning() |
-            EPOLLOUT * ev_obj->want_poll_out_at_the_beginning() |
+            ( EPOLLIN  * ev_obj->want_poll_inp_at_the_beginning() ) |
+            ( EPOLLOUT * ev_obj->want_poll_out_at_the_beginning() ) |
             EPOLLET;
     ev.data.u64 = 0; // for valgrind on 32 bits machines
     ev.data.ptr = ev_obj;
-    PRINT( ev_obj->fd );
     if ( epoll_ctl( event_fd, EPOLL_CTL_ADD, ev_obj->fd, &ev ) == -1 )
         perror( "epoll_ctl add" );
 

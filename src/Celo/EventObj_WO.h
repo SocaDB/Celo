@@ -24,6 +24,7 @@ protected:
     virtual bool out();
 
 private:
+    template<class T> friend void _send( EventObj_WO *eo, const char *data, ST size, bool end );
     void append( struct RemOutput *rem_out );
     void cl_rem();
 

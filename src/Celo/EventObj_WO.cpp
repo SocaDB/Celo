@@ -1,5 +1,26 @@
-#include "RemOutput.h"
 #include "StringHelp.h"
+#include "RemOutput.h"
+#include "EventLoop.h"
+
+template<class T>
+static void _send( EventObj_WO *eo, const char *data, ST size, bool end ) {
+    while ( true ) {
+        ST real = ::send( eo->fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
+        if ( real < 0 ) { // error ?
+            if ( errno == EAGAIN )
+                continue;
+            return eo->cl_rem();
+        }
+
+        size -= real;
+        if ( not size ) // done ?
+            return;
+
+        if ( not real ) ///< there's remaining data but we have to wait for the next "out round"
+            return eo->append( new T( data, size, end ) );
+        data += real;
+    }
+}
 
 EventObj_WO::EventObj_WO( int fd ) : EventObj_WP( fd ), prim_rem_out( 0 ), last_rem_out( 0 ) {
 }
@@ -17,19 +38,13 @@ bool EventObj_WO::out() {
         prim_rem_out = prim_rem_out->next;
         delete o;
     }
+    last_rem_out = 0;
     return false;
 }
 
 void EventObj_WO::send_cst( const char *data, ST size, bool end ) {
-    ST real = ::send( fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
-    if ( real < 0 )
-        return cl_rem();
-
-    size -= real;
-    if ( size > 0 ) {
-        data += real;
-        append( new RemOutputData( data, size, end ) );
-    }
+    out(); // if we have something to send first
+    _send<RemOutputData>( this, data, size, end );
 }
 
 void EventObj_WO::send_cst( const char *data ) {
@@ -37,35 +52,34 @@ void EventObj_WO::send_cst( const char *data ) {
 }
 
 void EventObj_WO::send_str( const char *data, ST size, bool end ) {
-    ST real = ::send( fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
-    if ( real < 0 )
-        return cl_rem();
-
-    size -= real;
-    if ( size > 0 ) {
-        data += real;
-        append( new RemOutputDataCopy( data, size, end ) );
-    }
+    out(); // if we have something to send first
+    _send<RemOutputDataCopy>( this, data, size, end );
 }
 
 void EventObj_WO::send_str( const char *data ) {
     send_str( data, strlen( data ) );
 }
 
-void EventObj_WO::send_fid( int src, ST off, ST len ) {
+void EventObj_WO::send_fid( int src, ST off, ST size ) {
+    out(); // if we have something to send first
     off_t offset = off;
-    ssize_t size = sendfile( fd, src, &offset, len );
-    if ( size < 0 ) {
-        if ( errno == EAGAIN )
-            return append( new RemOutputFile( src, offset, len ) );
-        return cl_rem();
+    while ( true ) {
+        ssize_t real = sendfile( fd, src, &offset, size );
+        if ( real < 0 ) {
+            if ( errno == EAGAIN )
+                continue;
+            return cl_rem();
+        }
+
+        size -= real;
+        if ( not size ) { // done ?
+            close( src );
+            return;
+        }
+
+        if ( not real ) ///< there's remaining data but we have to wait for the next "out round"
+            return append( new RemOutputFile( src, offset, size ) );
     }
-
-    len -= size;
-    if ( len )
-        return append( new RemOutputFile( src, offset, len ) );
-
-    close( src );
 }
 
 void EventObj_WO::append( RemOutput *rem_out ) {
@@ -77,8 +91,7 @@ void EventObj_WO::append( RemOutput *rem_out ) {
 
     if ( not prim_rem_out ) {
         prim_rem_out = rem_out;
-        //
-        poll_out();
+        ev_loop->mod( this, true );
     }
 }
 
