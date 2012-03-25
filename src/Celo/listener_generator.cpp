@@ -58,6 +58,7 @@ int main( int argc, char **argv ) {
         RA( "-o", output );
         RA( "-f", base_d );
         RA( "--sipe", sipe_e );
+        PRINT( arg );
         return usage( argv[ 0 ], "", 2 );
     }
 
