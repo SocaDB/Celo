@@ -11,6 +11,9 @@ public:
     Listener_Factory( const char *port, PR *pr = 0 ) : Listener_WithLaunch( port ), pr( pr ) {
     }
 
+    Listener_Factory( int fd, PR *pr = 0 ) : Listener_WithLaunch( fd ), pr( pr ) {
+    }
+
     virtual EventObj *event_obj_factory( int fd ) {
         return new EO( fd, pr );
     }

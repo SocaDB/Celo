@@ -27,23 +27,29 @@ Listener_WithLaunch::Listener_WithLaunch( const char *port ) : Listener( port ),
     browser_list = _browser_list_prop;
 }
 
-void Listener_WithLaunch::rdy() {
-    if ( launch ) {
-        // try with xdotool
-        if ( title and xdotool_cmd ) {
-            string cmd = string( xdotool_cmd ) + " search " + title + "windowactivate key F5";
+Listener_WithLaunch::Listener_WithLaunch( int fd ) : Listener( fd ) {
+}
+
+void Listener_WithLaunch::launch_browser() {
+    // try with xdotool
+    if ( title and xdotool_cmd ) {
+        string cmd = string( xdotool_cmd ) + " search " + title + "windowactivate key F5";
+        if ( system( cmd.c_str() ) == 0 )
+            return;
+    }
+
+    // else, try to launch in a new browser
+    std::ostringstream cmd;
+    for( int i = 0; browser_list[ i ]; ++i ) {
+        if ( _has_cmd( which_cmd, browser_list[ i ] ) ) {
+            string cmd = string( browser_list[ i ] ) + " http://localhost:" + port + start_url + " &";
             if ( system( cmd.c_str() ) == 0 )
                 return;
         }
-
-        // else, try to launch in a new browser
-        std::ostringstream cmd;
-        for( int i = 0; browser_list[ i ]; ++i ) {
-            if ( _has_cmd( which_cmd, browser_list[ i ] ) ) {
-                string cmd = string( browser_list[ i ] ) + " http://localhost:" + port + start_url + " &";
-                if ( system( cmd.c_str() ) == 0 )
-                    return;
-            }
-        }
     }
+}
+
+void Listener_WithLaunch::rdy() {
+    if ( launch )
+        launch_browser();
 }

@@ -5,7 +5,6 @@ Thread::~Thread() {
 }
 
 static void *_run( void *data ) {
-    PRINT( data );
     reinterpret_cast<Thread *>( data )->run();
     return 0;
 }

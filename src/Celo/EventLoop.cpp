@@ -5,6 +5,7 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <errno.h>
 
 EventLoop::EventLoop() {
     // epoll init
@@ -27,8 +28,11 @@ int EventLoop::run() {
     while( cnt ) {
         int nfds = epoll_wait( event_fd, events, max_events, -1 );
         if ( nfds == -1 ) {
-            perror( "epoll_wait" );
-            return -1;
+            if ( errno != EINTR ) {
+                perror( "epoll_wait" );
+                return -1;
+            }
+            continue;
         }
 
         // for each event

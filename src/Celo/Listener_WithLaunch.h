@@ -8,6 +8,8 @@
 class Listener_WithLaunch : public Listener {
 public:
     Listener_WithLaunch( const char *port );
+    Listener_WithLaunch( int fd ); ///< BEWARE
+    virtual void launch_browser();
     virtual void rdy();
 
     // data for rdy (used mainly for debug purpose)

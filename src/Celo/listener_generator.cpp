@@ -48,7 +48,7 @@ int usage( const char *prg, const char *msg, int res ) {
     c << "Usage:";
     c << "  " << prg << " [ options ]";
     c << "Possible options are:";
-    #define RA( A, V, I, D ) c << "  " << A << " " << I << "(default value='" << D << "'";
+    #define RA( A, V, I, D ) c << "  " << A << " " << I << " (default value='" << D << "'";
     #include "listener_generator_args.h"
     #undef RA
     return res;
