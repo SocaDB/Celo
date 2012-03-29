@@ -8,6 +8,7 @@
 */
 class EventObj_WO : public EventObj_WP {
 public:
+    EventObj_WO( VtableOnly );
     EventObj_WO( int fd );
     virtual ~EventObj_WO();
 

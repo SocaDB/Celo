@@ -8,7 +8,7 @@
 class Listener : public EventObj {
 public:
     Listener( const char *port );
-    Listener( int fd );
+    Listener( VtableOnly );
 
     virtual bool inp();
 

@@ -8,6 +8,9 @@
 EventObj::EventObj( int fd ) : fd( fd ) {
 }
 
+EventObj::EventObj( VtableOnly vo ) {
+}
+
 EventObj::~EventObj() {
     if ( fd > 2 )
         close( fd );

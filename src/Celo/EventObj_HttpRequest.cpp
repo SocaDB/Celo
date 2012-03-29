@@ -8,7 +8,10 @@
 #include <fcntl.h>
 //#include <errno.h>
 
-EventObj_HttpRequest::EventObj_HttpRequest( int fd, void *dummy ) : EventObj_WO( fd ) {
+EventObj_HttpRequest::EventObj_HttpRequest( int fd ) : EventObj_WO( fd ) {
+}
+
+EventObj_HttpRequest::EventObj_HttpRequest( VtableOnly vo ) : EventObj_WO( vo ) {
 }
 
 bool EventObj_HttpRequest::send_file( const char *url ) {

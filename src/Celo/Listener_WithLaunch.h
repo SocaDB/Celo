@@ -8,7 +8,7 @@
 class Listener_WithLaunch : public Listener {
 public:
     Listener_WithLaunch( const char *port );
-    Listener_WithLaunch( int fd ); ///< BEWARE
+    Listener_WithLaunch( VtableOnly );
     virtual void launch_browser();
     virtual void rdy();
 

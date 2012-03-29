@@ -27,7 +27,7 @@ Listener_WithLaunch::Listener_WithLaunch( const char *port ) : Listener( port ),
     browser_list = _browser_list_prop;
 }
 
-Listener_WithLaunch::Listener_WithLaunch( int fd ) : Listener( fd ) {
+Listener_WithLaunch::Listener_WithLaunch( VtableOnly vo ) : Listener( vo ) {
 }
 
 void Listener_WithLaunch::launch_browser() {

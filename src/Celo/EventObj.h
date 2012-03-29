@@ -7,6 +7,9 @@
 */
 class EventObj {
 public:
+    struct VtableOnly {};
+
+    EventObj( VtableOnly ); ///< a constructor that does not assign anything. Permits to do a new( ptr ) T to change _only_ the vtable (underlying type)
     EventObj( int fd );
     virtual ~EventObj();
 

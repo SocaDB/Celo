@@ -56,8 +56,10 @@ int EventLoop::run() {
                 cnt = false;
             }
 
-            if ( not cnt )
+            if ( not cnt ) {
+                PRINT( rq->fd );
                 delete rq;
+            }
         }
     }
 

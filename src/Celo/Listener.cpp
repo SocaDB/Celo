@@ -6,7 +6,7 @@
 Listener::Listener( const char *port ) : EventObj( listening_socket( port ) ) {
 }
 
-Listener::Listener( int fd ) : EventObj( fd ) {
+Listener::Listener( VtableOnly vo ) : EventObj( vo ) {
 }
 
 bool Listener::inp() {

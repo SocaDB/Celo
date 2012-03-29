@@ -5,6 +5,9 @@
 EventObj_WP::EventObj_WP( int fd ) : EventObj( fd ) {
 }
 
+EventObj_WP::EventObj_WP( VtableOnly vo ) : EventObj( vo ) {
+}
+
 bool EventObj_WP::inp() {
     const int size_buff = 2048;
     char buff[ size_buff ];

@@ -25,6 +25,9 @@ static void _send( EventObj_WO *eo, const char *data, ST size, bool end ) {
 EventObj_WO::EventObj_WO( int fd ) : EventObj_WP( fd ), prim_rem_out( 0 ), last_rem_out( 0 ) {
 }
 
+EventObj_WO::EventObj_WO( VtableOnly vo ) : EventObj_WP( vo ) {
+}
+
 EventObj_WO::~EventObj_WO() {
     cl_rem();
 }

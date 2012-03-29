@@ -8,11 +8,8 @@
 template<class EO,class PR = void,class PA = Listener_WithLaunch>
 class Listener_Factory : public PA {
 public:
-    Listener_Factory( const char *port, PR *pr = 0 ) : Listener_WithLaunch( port ), pr( pr ) {
-    }
-
-    Listener_Factory( int fd, PR *pr = 0 ) : Listener_WithLaunch( fd ), pr( pr ) {
-    }
+    Listener_Factory( const char *port, PR *pr = 0 ) : PA( port ), pr( pr ) {}
+    Listener_Factory( typename PA::VtableOnly vo ) : PA( vo ) {}
 
     virtual EventObj *event_obj_factory( int fd ) {
         return new EO( fd, pr );

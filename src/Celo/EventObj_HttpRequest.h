@@ -7,7 +7,8 @@
 */
 class EventObj_HttpRequest : public EventObj_WO {
 public:
-    EventObj_HttpRequest( int fd, void *dummy = 0 );
+    EventObj_HttpRequest( VtableOnly );
+    EventObj_HttpRequest( int fd );
 
 protected:
     bool send_file( const char *url ); ///< helper
