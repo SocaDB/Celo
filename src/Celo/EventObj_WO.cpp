@@ -85,6 +85,10 @@ void EventObj_WO::send_fid( int src, ST off, ST size ) {
     }
 }
 
+void EventObj_WO::wait_for_send() {
+    append( new RemOutputWait );
+}
+
 void EventObj_WO::append( RemOutput *rem_out ) {
     rem_out->next = 0;
 

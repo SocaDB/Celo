@@ -21,6 +21,8 @@ public:
 
     void send_fid( int src, ST off, ST len ); ///< from file id src
 
+    void wait_for_send(); ///< wait until there is something to send (that is a send_... is issued)
+
 protected:
     virtual bool out();
 

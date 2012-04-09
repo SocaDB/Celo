@@ -25,8 +25,8 @@ bool EventObj_WP::inp() {
 
         // parse
         // write( 0, buff, ruff );
-        if ( parse( buff, buff + ruff ) )
-            return false;
+        if ( int p = parse( buff, buff + ruff ) )
+            return p < 0;
     }
 }
 

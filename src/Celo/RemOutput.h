@@ -97,4 +97,13 @@ struct RemOutputFile : public RemOutput {
     ST    size;
 };
 
+/**
+  say "done" if followed by something to send
+*/
+struct RemOutputWait : public RemOutput {
+    virtual bool write( EventObj_WO *obj ) {
+        return next;
+    }
+};
+
 #endif // REMOUTPUT_H
