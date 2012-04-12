@@ -1,6 +1,7 @@
 #include "StringHelp.h"
 #include "EventLoop.h"
 #include "EventObj.h"
+#include "IdleObj.h"
 
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -12,6 +13,9 @@ EventLoop::EventLoop() {
     event_fd = epoll_create1( 0 );
     if ( event_fd < 0 )
         perror( "epoll_create1" );
+
+    //
+    idle_list = 0;
 }
 
 EventLoop::~EventLoop() {
@@ -61,6 +65,14 @@ int EventLoop::run() {
                 delete rq;
             }
         }
+
+        //
+        for( IdleObj *o = idle_list; o; o = o->prev_idle ) {
+            if ( not o->inp() ) {
+                operator>>( o );
+                delete o;
+            }
+        }
     }
 
     return 0;
@@ -71,7 +83,7 @@ void EventLoop::stop() {
 }
 
 EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
-    if ( ev_obj == 0 or ev_obj->fd < 0 ) {
+    if ( not ev_obj or ev_obj->fd < 0 ) {
         delete ev_obj;
         return *this;
     }
@@ -90,6 +102,29 @@ EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
 
     ev_obj->rdy();
     return *this;
+}
+
+EventLoop &EventLoop::operator<<( IdleObj *ev_obj ) {
+    ev_obj->prev_idle = idle_list;
+    idle_list = ev_obj;
+}
+
+EventLoop &EventLoop::operator>>( EventObj *ev_obj ) {
+    if ( epoll_ctl( event_fd, EPOLL_CTL_DEL, ev_obj->fd, 0 ) == -1 )
+        perror( "epoll_ctl del" );
+}
+
+EventLoop &EventLoop::operator>>( IdleObj *ev_obj ) {
+    if ( idle_list == ev_obj ) {
+        idle_list = ev_obj->prev_idle;
+    } else {
+        for( IdleObj *o = idle_list; o; o = o->prev_idle ) {
+            if ( o->prev_idle == ev_obj ) {
+                o->prev_idle = ev_obj->prev_idle;
+                break;
+            }
+        }
+    }
 }
 
 void EventLoop::mod( EventObj *ev_obj, bool want_out ) {

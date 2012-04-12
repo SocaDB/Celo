@@ -45,3 +45,7 @@ bool EventObj::want_poll_inp_at_the_beginning() const {
 bool EventObj::want_poll_out_at_the_beginning() const {
     return false;
 }
+
+bool EventObj::called_if_idle() const {
+    return false;
+}
