@@ -9,7 +9,7 @@ cmp: inst_dir Sipe
 	${MCP} -ne -o listener_generator src/Celo/listener_generator.cpp
 
 Sipe:
-	git clone git@gitosis.lmt.ens-cachan.fr:Sipe
+	git clone git@github.com:hleclerc/Sipe.git
 
 exe:
 	${MCP} ${PRG}
