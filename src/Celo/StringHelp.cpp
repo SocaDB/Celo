@@ -34,7 +34,7 @@ std::string url_encode( const std::string &str ) {
     static char conv[] = "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%-.%0123456789%%%%%%%ABCDEFGHIJKLMNOPQRSTUVWXYZ%%%%_%abcdefghijklmnopqrstuvwxyz%%%~%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%";
     static char to_hex[] = "0123456789ABCDEF";
     std::string res; res.reserve( str.size() );
-    for( int i = 0; i < str.size(); ++i ) {
+    for( unsigned i = 0; i < str.size(); ++i ) {
         unsigned char u = str[ i ];
         char c = conv[ u ];
         if ( c == '%' ) {
@@ -48,9 +48,9 @@ std::string url_encode( const std::string &str ) {
 std::string url_decode( const std::string &str ) {
     static char from_hex[] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,0,10,11,12,13,14,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,11,12,13,14,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
     std::string res;
-    for( int i = 0; i < str.size(); ++i ) {
+    for( unsigned i = 0; i < str.size(); ++i ) {
         if ( str[ i ] == '%' and i + 2 < str.size() )
-            res += from_hex[ str[ ++i ] ] << 4 | from_hex[ str[ ++i ] ];
+            res += ( from_hex[ (unsigned char)str[ ++i ] ] << 4 ) | from_hex[ (unsigned char)str[ ++i ] ];
         else
             res += str[ i ];
     }

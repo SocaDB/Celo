@@ -107,11 +107,13 @@ EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
 EventLoop &EventLoop::operator<<( IdleObj *ev_obj ) {
     ev_obj->prev_idle = idle_list;
     idle_list = ev_obj;
+    return *this;
 }
 
 EventLoop &EventLoop::operator>>( EventObj *ev_obj ) {
     if ( epoll_ctl( event_fd, EPOLL_CTL_DEL, ev_obj->fd, 0 ) == -1 )
         perror( "epoll_ctl del" );
+    return *this;
 }
 
 EventLoop &EventLoop::operator>>( IdleObj *ev_obj ) {
@@ -125,6 +127,7 @@ EventLoop &EventLoop::operator>>( IdleObj *ev_obj ) {
             }
         }
     }
+    return *this;
 }
 
 void EventLoop::mod( EventObj *ev_obj, bool want_out ) {

@@ -13,7 +13,7 @@ Mutex::~Mutex() {
 }
 
 int Mutex::try_lock() {
-    pthread_mutex_trylock( &mutex );
+    return pthread_mutex_trylock( &mutex );
 }
 
 void Mutex::lock() {

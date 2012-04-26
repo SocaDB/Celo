@@ -8,7 +8,9 @@
 #include <time.h>
 #include <math.h>
 
+#ifdef METIL_COMP_DIRECTIVE
 #pragma lib_name rt
+#endif // METIL_COMP_DIRECTIVE
 
 static int make_timer_fd( double delay ) {
     timespec now;

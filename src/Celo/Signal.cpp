@@ -31,7 +31,7 @@ bool Signal::inp() {
     signalfd_siginfo sig_info;
     while ( true ) {
         ssize_t s = read( fd, &sig_info, sizeof( sig_info ) );
-        if ( s < sizeof( sig_info ) ) {
+        if ( s < (ssize_t)sizeof( sig_info ) ) {
             fprintf( stderr, "Signal error\n" );
             return false;
         }
