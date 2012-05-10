@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "StringHelp.h"
+
 EventObj_WP::EventObj_WP( int fd ) : EventObj( fd ) {
 }
 
@@ -14,8 +16,9 @@ bool EventObj_WP::inp() {
     while ( true ) {
         ST ruff = read( fd, buff, size_buff );
         if ( ruff < 0 ) {
-            if ( errno == EAGAIN )
-                continue;
+            // EAGAIN
+            // if ( errno == EAGAIN )
+            //     continue;
             return false;
         }
 
