@@ -17,10 +17,8 @@ bool EventObj_WP::inp() {
         ST ruff = read( fd, buff, size_buff );
         if ( ruff < 0 ) {
             // EAGAIN
-            PRINT( ruff );
-            PRINT( errno == EAGAIN );
             if ( errno == EAGAIN )
-                continue;
+                return true;
             return false;
         }
 
