@@ -35,11 +35,11 @@ void Listener_WithLaunch::launch_browser() {
     if ( title and xdotool_cmd ) {
         string cmd = string( xdotool_cmd ) + " search " + title + " windowactivate key F5";
         if ( system( cmd.c_str() ) == 0 ) {
-            std::cout << "Call to xdotool (looking for '" << title << "') has succeeded.";
+            std::cout << "Call to xdotool (looking for '" << title << "') has succeeded." << std::endl;
             return;
         }
     }
-    std::cout << "Call to xdotool (looking for '" << title << "') has failed.";
+    std::cout << "Call to xdotool (looking for '" << title << "') has failed." << std::endl;
 
     // else, try to launch in a new browser
     std::ostringstream cmd;
