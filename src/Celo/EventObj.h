@@ -19,8 +19,10 @@ public:
     virtual void hup(); ///< if closed
     virtual void rdy(); ///< called after installation of this in event loop
 
+
     virtual bool want_poll_inp_at_the_beginning() const;
     virtual bool want_poll_out_at_the_beginning() const;
+    virtual bool cnt_default_value() const;
     virtual bool called_if_idle() const; ///< true if watching for idle, not for fd
 
     void poll_out(); ///< add output polling for $this in ev_loop

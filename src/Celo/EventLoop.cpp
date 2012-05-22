@@ -42,7 +42,7 @@ int EventLoop::run() {
         // for each event
         for( int n = 0; n < nfds; ++n ) {
             EventObj *rq = reinterpret_cast<EventObj *>( events[ n ].data.ptr );
-            bool cnt = false;
+            bool cnt = rq->cnt_default_value();
 
             if ( events[ n ].events & EPOLLIN ) // input data
                 cnt |= rq->inp();

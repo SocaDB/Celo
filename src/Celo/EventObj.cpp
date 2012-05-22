@@ -46,6 +46,10 @@ bool EventObj::want_poll_out_at_the_beginning() const {
     return false;
 }
 
+bool EventObj::cnt_default_value() const {
+    return true;
+}
+
 bool EventObj::called_if_idle() const {
     return false;
 }
