@@ -2,11 +2,10 @@
 
 #include <sys/stat.h>
 #include <unistd.h>
-//#include <stdlib.h>
 #include <string.h>
-#include <string>
+#include <stdio.h>
 #include <fcntl.h>
-//#include <errno.h>
+#include <string>
 
 EventObj_HttpRequest::EventObj_HttpRequest( int fd ) : EventObj_WO( fd ) {
 }
@@ -66,8 +65,9 @@ void EventObj_HttpRequest::send_head( const char *url ) {
 
 #define ERR( NUM, MSG ) \
     void EventObj_HttpRequest::error_##NUM() { \
-        const char s[] = "HTTP/1.0 " #NUM " " MSG "\n\n"; \
-        send_cst( s, sizeof( s ) - 1 ); \
+        const char s[] = "HTTP/1.0 " #NUM " " MSG "\nContent-Type: text/plain\nContent-Length: 12\nStatus: " #NUM "\n\nERROR " #NUM "..."; \
+        send_cst( s, sizeof( s ) - 1, true ); \
+        printf( "E" #NUM "\n" ); \
     }
 #include "ErrorCodes.h"
 #undef ERR

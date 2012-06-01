@@ -6,6 +6,7 @@ template<class T>
 static void _send( EventObj_WO *eo, const char *data, ST size, bool end ) {
     while ( true ) {
         ST real = ::send( eo->fd, data, size, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
+        //std::cout.write( data, size );
         if ( real < 0 ) { // error ?
             if ( errno == EAGAIN )
                 continue;
