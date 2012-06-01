@@ -63,11 +63,11 @@ void EventObj_HttpRequest::send_head( const char *url ) {
     send_cst( s, sizeof( s ) - 1, false );
 }
 
+//
 #define ERR( NUM, MSG ) \
     void EventObj_HttpRequest::error_##NUM() { \
-        const char s[] = "HTTP/1.0 " #NUM " " MSG "\nContent-Type: text/plain\nContent-Length: 12\nStatus: " #NUM "\n\nERROR " #NUM "..."; \
+        const char s[] = "HTTP/1.0 " #NUM " " MSG "\nContent-Type: text/plain\nContent-Length: 50\nStatus: " #NUM "\n\nERROR " #NUM ": " MSG "                                                  "; \
         send_cst( s, sizeof( s ) - 1, true ); \
-        printf( "E" #NUM "\n" ); \
     }
 #include "ErrorCodes.h"
 #undef ERR
