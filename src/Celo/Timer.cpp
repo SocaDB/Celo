@@ -52,8 +52,8 @@ Timer::Timer( double delay ) : EventObj( make_timer_fd( delay ) ) {
 bool Timer::inp() {
     uint64_t exp;
     ssize_t s = read( fd, &exp, sizeof( uint64_t ) );
-    if ( s != sizeof( uint64_t ) )
-        fprintf( stderr, "timer error\n" );
+    //if ( s != sizeof( uint64_t ) )
+    //    fprintf( stderr, "timer error\n" );
 
     timeout();
     return true; // do not close fd (continue to wait for events)
