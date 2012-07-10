@@ -23,6 +23,8 @@ public:
 
     void wait_for_send(); ///< wait until there is something to send (that is a send_... is issued)
 
+    bool still_has_something_to_send() const;
+
 protected:
     virtual bool out();
 

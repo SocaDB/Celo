@@ -90,6 +90,10 @@ void EventObj_WO::wait_for_send() {
     append( new RemOutputWait );
 }
 
+bool EventObj_WO::still_has_something_to_send() const {
+    return prim_rem_out;
+}
+
 void EventObj_WO::append( RemOutput *rem_out ) {
     rem_out->next = 0;
 
