@@ -46,7 +46,7 @@ int EventLoop::run() {
 
             if ( events[ n ].events & EPOLLIN ) // input data
                 cnt |= rq->inp();
-
+            
             if ( events[ n ].events & EPOLLOUT ) // output data
                 cnt |= rq->out();
 

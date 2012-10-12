@@ -59,7 +59,11 @@ void EventObj_HttpRequest::send_head( const char *url ) {
     #undef SH
 
     // default  -> plain text
+#ifdef SCEEN
+    const char s[] = "";
+#else
     const char s[] = "HTTP/1.0 200 OK\nContent-Type: text/plain\n\n";
+#endif
     send_cst( s, sizeof( s ) - 1, false );
 }
 

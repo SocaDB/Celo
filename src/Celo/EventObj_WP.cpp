@@ -28,8 +28,16 @@ bool EventObj_WP::inp() {
 
         // parse
         // write( 0, buff, ruff );
-        if ( int p = parse( buff, buff + ruff ) )
+        int p = parse( buff, buff + ruff );
+        PRINT( p );
+        
+        if ( p )
             return p < 0;
     }
 }
+
+bool EventObj_WP::cnt_default_value() const {
+    return false;
+}
+
 
