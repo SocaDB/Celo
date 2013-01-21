@@ -4,12 +4,8 @@ INSTALL_DIR = `pwd`
 
 all: cmp
 
-cmp: inst_dir Sipe
-	make -C Sipe
+cmp: inst_dir 
 	${MCP} -ne -o listener_generator src/Celo/listener_generator.cpp
-
-Sipe:
-	git clone git@github.com:hleclerc/Sipe.git
 
 exe:
 	${MCP} ${PRG}
