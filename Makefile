@@ -15,6 +15,7 @@ inst_dir:
 
 clean:
 	rm listener_generator
+	rm src/Celo/compilations/*
 
 .PHONY: inst_dir
 
