@@ -25,6 +25,7 @@
 using namespace std;
 
 static const char *_browser_list_prop[] = {
+    "chromium-browser",
     "google-chrome",
     "firefox",
     0

@@ -126,8 +126,8 @@ int main( int argc, char **argv ) {
         sipe_v.push_back( sipe_exe );
     else {
         sipe_v.push_back( "sipe" );
-        sipe_v.push_back( INSTALL_DIR "/Sipe/sipe" );
-        sipe_v.push_back( "../Sipe/sipe" );
+        sipe_v.push_back( INSTALL_DIR "/ext/Sipe/sipe" );
+        sipe_v.push_back( "../ext/Sipe/sipe" );
     }
 
     string gen_file = output + "_parser.h";
