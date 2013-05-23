@@ -29,12 +29,12 @@ class EventObj {
 public:
     struct VtableOnly {};
 
-    EventObj( VtableOnly ); ///< a constructor that does not assign anything. Permits to do a new( ptr ) T to change _only_ the vtable (underlying type)
+    EventObj( VtableOnly ); ///< a constructor that does not assign any attribute (else than the vtable). Permits to do a new( ptr ) T to change _only_ the vtable (underlying type)
     EventObj( int fd );
     virtual ~EventObj();
 
     virtual bool inp(); ///< if input data. return true if needs or may accept more.
-    virtual bool out(); ///< if ready for output. return true if there is still remainging data to send.
+    virtual bool out(); ///< if ready for output. return true if there is still remaining data to send.
     virtual void err(); ///< if error
     virtual void hup(); ///< if closed
     virtual void rdy(); ///< called after installation of this in event loop

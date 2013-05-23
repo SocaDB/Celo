@@ -66,7 +66,7 @@ struct RemOutputData : public RemOutput {
 
     const char *data;
     ST size;
-    bool end;
+    bool end; ///< false to send using MSG_MORE
 };
 
 /**

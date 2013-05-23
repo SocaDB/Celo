@@ -22,7 +22,6 @@ src/Celo/BasicHttpRequest.cpp
 src/Celo/StringBlk.h
 src/Celo/StringBlk.cpp
 src/Celo/ErrorCodes.h
-src/Celo/BasicHttpRequest.py
 src/Celo/EventObj_WO.h
 src/Celo/EventObj_WO.cpp
 src/Celo/BasicHttpRequest_FileServer.h

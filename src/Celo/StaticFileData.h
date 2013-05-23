@@ -25,7 +25,7 @@
 #include <vector>
 
 /**
-
+  Permit to construct (in this->data and in this->info) info that contains html/js/... pages in memory with included headers
 */
 class StaticFileData {
 public:
@@ -38,7 +38,7 @@ public:
     StaticFileData();
     void exec( const std::string &base );
 
-    virtual bool excluded( const std::string &filename ) const; ///< return
+    virtual bool excluded( const std::string &filename ) const; ///< return true if a filename must be excluded
     virtual const char *mime_type( const std::string &url ) const; ///< return e.g. text/html for a .html file
 
     // input
