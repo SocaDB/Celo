@@ -36,6 +36,9 @@ public:
 protected:
     // to be redefined (if default inp is used)
     virtual int parse( char *beg, char *end ) = 0; ///< return CNT if we need more to read. WAIT permits to keep the connection alive
+
+    virtual bool cnt_default_value() const;
+
 };
 
 #endif // EVENTOBJ_WP_H
