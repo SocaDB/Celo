@@ -49,7 +49,6 @@ bool EventObj_WP::inp() {
         // parse
         // write( 0, buff, ruff );
         int p = parse( buff, buff + ruff );
-        PRINT( p );
         
         if ( p )
             return p < 0;
