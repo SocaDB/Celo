@@ -50,3 +50,8 @@ src/Celo/Thread.cpp
 src/Celo/Mutex.h
 src/Celo/Mutex.cpp
 src/Celo/listener_generator_args.h
+src/Celo/EventObj_SSL.h
+src/Celo/EventObj_SSL.cpp
+src/Celo/Listener_SSL.h
+src/Celo/Listener_SSL.cpp
+tests/test_Https.cpp
