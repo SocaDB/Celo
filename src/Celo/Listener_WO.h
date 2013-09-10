@@ -26,9 +26,9 @@
 /**
 */
 template<class ObjWithEventObjFactory>
-class Listener : public ListenerAncestor {
+class Listener_WO : public Listener {
 public:
-    Listener( ObjWithEventObjFactory *obj, const char *port ) : obj( obj ), ListenerAncestor( port ) {
+    Listener_WO( ObjWithEventObjFactory *obj, const char *port ) : obj( obj ), Listener( port ) {
     }
 
     virtual EventObj *event_obj_factory( int fd ) {

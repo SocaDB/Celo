@@ -33,17 +33,17 @@ public:
     virtual ~EventObj_WO();
 
     // send data to fd
-    void send_cst( const char *data, ST size, bool end = true ); ///< permanent data (no copy, no free)
-    void send_cst( const char *data ); ///< permanent data (no copy, no free)
+    void send_cst( const char *data, ST size, bool end = true ); ///< send permanent data (no copy, no free)
+    void send_cst( const char *data ); ///< send permanent data (no copy, no free)
 
-    void send_str( const char *data, ST size, bool end = true ); ///< data will be copied (if not sent in one shot) and freed
-    void send_str( const char *data ); ///< data will be copied (if not sent in one shot) and freed
+    void send_str( const char *data, ST size, bool end = true ); ///< send data will be copied (if not sent in one shot) and freed
+    void send_str( const char *data ); ///< send data will be copied (if not sent in one shot) and freed
 
-    void send_fid( int src, ST off, ST len ); ///< from file id src
+    void send_fid( int src, ST off, ST len ); ///< send data from a file describer by its id
 
-    void wait_for_send(); ///< wait until there is something to send (that is a send_... is issued)
+    void wait_for_send(); ///< append RemOutputWait to the list of objects to be sent that will say "done" if followed by something to send
 
-    bool still_has_something_to_send() const;
+    bool still_has_something_to_send() const; ///< return true if write buffer is not empty
 
 protected:
     virtual bool out();
@@ -51,7 +51,7 @@ protected:
 private:
     template<class T> friend void _send( EventObj_WO *eo, const char *data, ST size, bool end );
     void append( struct RemOutput *rem_out );
-    void cl_rem();
+    void cl_rem(); ///< delete list of rem_out
 
     struct RemOutput *prim_rem_out;
     struct RemOutput *last_rem_out;

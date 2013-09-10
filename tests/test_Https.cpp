@@ -18,45 +18,46 @@
 */
 
 
-#include <Celo/EventObj_WO.h>
+#include <Celo/EventObj_WO_SSL.h>
 #include <Celo/StringHelp.h>
 #include <Celo/EventLoop.h>
 #include <Celo/Listener.h>
+#include <Celo/SslCtx.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 
-struct MyHttpRequest : EventObj_WO {
-    MyHttpRequest( int fd ) : EventObj_WO( fd ) {
+struct MyHttpsRequest : EventObj_WO_SSL {
+    MyHttpsRequest( SSL_CTX *ssl_ctx, int fd ) : EventObj_WO_SSL( ssl_ctx, fd ) {
     }
 
     virtual int parse( char *beg, char *end ) {
         write( 0, beg, end - beg );
-        std::cout.write( beg, end - beg );
         return OK;
-        //        if ( strcmp( url.data, "/exit" ) == 0 )
-        //            return ev_loop->stop();
-        //        BasicHttpRequest_FileServer::req_GET();
     }
 };
 
 struct MyListener : Listener {
-    MyListener( const char *port ) : Listener( port ) {}
+    MyListener( const char *port, SslCtx *ssl_ctx ) : Listener( port ), ssl_ctx( ssl_ctx ) {
+    }
 
     virtual void rdy() {
-        system( "google-chrome http://localhost:8899 &" );
+        system( "google-chrome https://localhost:8899 &" );
     }
 
     virtual EventObj *event_obj_factory( int fd ) {
-        return new MyHttpRequest( fd );
+        return new MyHttpsRequest( ssl_ctx->ctx, fd );
     }
+
+    SslCtx *ssl_ctx;
 };
 
 int main() {
     EventLoop el;
 
-    MyListener l( "8899" );
+    SslCtx ssl_ctx( "mycert.pem", "mycert.pem" );
+    MyListener l( "8899", &ssl_ctx );
     el << &l;
 
     return el.run();

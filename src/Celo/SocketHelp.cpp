@@ -89,7 +89,7 @@ int listening_socket( const char *port ) {
     return -1;
 }
 
-int accepting_socket( int listen_fd ) {
+int accepting_socket( int listen_fd, int non_blocking ) {
     // accept
     sockaddr_in local;
     socklen_t addrlen = sizeof( sockaddr_in );
@@ -100,9 +100,11 @@ int accepting_socket( int listen_fd ) {
     }
 
     // socket parameters
-    if ( set_non_blocking( conn_sock ) ) {
-        close( conn_sock );
-        return -1;
+    if ( non_blocking ) {
+        if ( set_non_blocking( conn_sock ) ) {
+            close( conn_sock );
+            return -1;
+        }
     }
 
     return conn_sock;

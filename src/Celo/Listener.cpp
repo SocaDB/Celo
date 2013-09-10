@@ -34,6 +34,7 @@ bool Listener::inp() {
         int nd = accepting_socket( fd );
         if ( nd == -1 )
             return true; // continue to listen
-        *ev_loop << event_obj_factory( nd );
+        if ( EventObj *eo = event_obj_factory( nd ) )
+            *ev_loop << eo;
     }
 }
