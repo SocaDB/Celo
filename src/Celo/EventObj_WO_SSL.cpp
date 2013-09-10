@@ -13,6 +13,8 @@ EventObj_WO_SSL::EventObj_WO_SSL( SSL_CTX *ctx, int fd ) : EventObj( fd ), ctx( 
 
     ssl = SSL_new( ctx );
 
+    SSL_set_mode( ssl, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER );
+
     SSL_set_accept_state( ssl );
     SSL_set_bio( ssl, rbio, wbio );
 }
@@ -22,68 +24,65 @@ EventObj_WO_SSL::EventObj_WO_SSL( VtableOnly vo ) : EventObj( vo ) {
 }
 
 bool EventObj_WO_SSL::inp() {
-    PRINT( "inp" );
+    // copy data from socket to rbio
     const int size_buff = 2048;
     char buff[ size_buff ];
     while ( true ) {
         ST ruff = read( fd, buff, size_buff );
         if ( ruff < 0 ) {
             // EAGAIN
-            if ( errno == EAGAIN ) {
-                out();
+            if ( errno == EAGAIN )
                 return true;
-            }
             return false;
         }
 
-        // if we need more data and
+        // no data have been provided -> wait for next signal
         if ( ruff == 0 )
             return true;
 
-        // filter
+        // copy to openssl rbio
         ST written = BIO_write( rbio, buff, ruff );
-        if ( written != ruff )
+        if ( written != ruff ) {
             TODO;
-        PRINT( written );
+            abort();
+        }
 
-        // parse
+        // SSL <-> socket (using local copy)
         while ( true ) {
-            const int ns = 1024;
-            char data[ ns ];
-            int read = SSL_read( ssl, data, ns );
-
+            // get unencrypted data
+            int read = SSL_read( ssl, buff, size_buff );
             PRINT( read );
-            if ( read > 0 ) {
-                write( 0, data, read );
-                int p = parse( data, data + read );
-
-                if ( p )
+            switch ( SSL_get_error( ssl, read ) ) {
+            case SSL_ERROR_NONE:
+                if ( int p = parse( buff, buff + read ) )
                     return p < 0;
-            } else if ( not _continue_ssl( read ) )
-                TODO;
-
-            if ( read != ns or written == 0 )
                 break;
+            case SSL_ERROR_ZERO_RETURN:
+                // end of the connection
+                return false;
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+                PRINT( "w" );
+                // continue
+                break;
+            default:
+                // a real error
+                return false;
+            }
+
+            // send some data to socket if necessary
+            int size = BIO_read( wbio, buff, size_buff );
+            PRINT( size );
+//            if ( size < 0 )
+//                break;
+            if ( size > 0 )
+                send_str( buff, size, false );
         }
     }
-
-    out();
 }
 
 bool EventObj_WO_SSL::out() {
     PRINT( "out" );
-    while ( true ) {
-        const int ds = 1024;
-        char data[ ds ];
-        int size = BIO_read( wbio, data, ds );
-        PRINT( size );
-
-        if ( size > 0 )
-            ::send( fd, data, size, MSG_NOSIGNAL );
-
-        if ( size != ds || size == 0 )
-            break;
-    }
 }
 
 void EventObj_WO_SSL::send_cst( const char *data, ST size, bool end ) {

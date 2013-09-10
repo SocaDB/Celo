@@ -22,6 +22,7 @@
 #define STRINGHELP_H
 
 #include <iostream>
+#include <assert.h>
 
 #ifndef PRINT
     #define PRINT( A ) \
