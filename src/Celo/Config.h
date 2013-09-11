@@ -23,6 +23,8 @@
 
 #include <stdint.h>
 
+namespace Celo {
+
 typedef int8_t      SI8 ;
 typedef int16_t     SI16;
 typedef int32_t     SI32;
@@ -48,5 +50,6 @@ namespace Level1 {
 typedef Level1::SigSChoice<sizeof(void *)>::T ST; ///< signed size type
 typedef Level1::PosSChoice<sizeof(void *)>::T PT; ///< unsigned size type
 
+}
 
 #endif // CONFIG_H

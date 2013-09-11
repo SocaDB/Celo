@@ -23,7 +23,10 @@
 
 #include "EventObj.h"
 
+namespace Celo {
+
 /**
+  calls `connection` with an accepting socket fd each a new connection is required
  */
 class Listener : public EventObj {
 public:
@@ -33,8 +36,9 @@ public:
     virtual bool inp();
 
     // called after an accept
-    virtual EventObj *event_obj_factory( int fd ) = 0;
+    virtual bool connection( int fd ) = 0;
 };
 
+}
 
 #endif // LISTENER_H

@@ -18,12 +18,12 @@
 */
 
 
-#include "StringHelp.h"
 #include "EventLoop.h"
 #include "EventObj.h"
 
-#include <sys/socket.h>
 #include <unistd.h>
+
+namespace Celo {
 
 EventObj::EventObj( int fd ) : fd( fd ) {
 }
@@ -54,22 +54,12 @@ void EventObj::rdy() {
 }
 
 void EventObj::poll_out() {
-    ev_loop->poll_out( this );
+    ev_loop->poll_out_obj( this );
+}
+
+void EventObj::stop_event_loop( int ret_val ) {
+    ev_loop->stop( ret_val );
 }
 
 
-bool EventObj::want_poll_inp_at_the_beginning() const {
-    return true;
-}
-
-bool EventObj::want_poll_out_at_the_beginning() const {
-    return false;
-}
-
-bool EventObj::cnt_default_value() const {
-    return true;
-}
-
-bool EventObj::called_if_idle() const {
-    return false;
 }

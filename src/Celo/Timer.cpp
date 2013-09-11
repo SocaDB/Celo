@@ -18,7 +18,7 @@
 */
 
 
-#include "SocketHelp.h"
+#include "Util/FileDescriptor.h"
 #include "Timer.h"
 
 #include <sys/timerfd.h>
@@ -31,6 +31,8 @@
 #ifdef METIL_COMP_DIRECTIVE
 #pragma lib_name rt
 #endif // METIL_COMP_DIRECTIVE
+
+namespace Celo {
 
 static int make_timer_fd( double delay ) {
     timespec now;
@@ -47,6 +49,7 @@ static int make_timer_fd( double delay ) {
     }
 
     if ( set_non_blocking( fd ) == -1 ) {
+        perror( "non blocking timer fd" );
         close( fd );
         return -1;
     }
@@ -70,12 +73,9 @@ Timer::Timer( double delay ) : EventObj( make_timer_fd( delay ) ) {
 }
 
 bool Timer::inp() {
-    uint64_t exp;
-    //ssize_t s =
-    read( fd, &exp, sizeof( uint64_t ) );
-    //if ( s != sizeof( uint64_t ) )
-    //    fprintf( stderr, "timer error\n" );
+    uint64_t nb_expirations;
+    ssize_t s = read( fd, &nb_expirations, sizeof( uint64_t ) );
+    timeout( s >= sizeof( uint64_t ) ? nb_expirations : 0 );
+}
 
-    timeout();
-    return true; // do not close fd (continue to wait for events)
 }

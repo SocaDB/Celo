@@ -18,18 +18,19 @@
 */
 
 
-#include "SocketHelp.h"
+#include "FileDescriptor.h"
+#include "Socket.h"
 
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>
-// #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <fcntl.h>
 #include <netdb.h>
+
+namespace Celo {
 
 int listening_socket( const char *port ) {
     if ( not port )
@@ -110,13 +111,4 @@ int accepting_socket( int listen_fd, int non_blocking ) {
     return conn_sock;
 }
 
-int set_non_blocking( int fd ) {
-    int flags = fcntl( fd, F_GETFL );
-    if ( flags < 0 )
-        return flags;
-    flags |= O_NONBLOCK;
-    if ( fcntl( fd, F_SETFL, flags ) < 0 )
-        return -1;
-    return 0;
 }
-

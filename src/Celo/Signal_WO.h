@@ -18,23 +18,37 @@
 */
 
 
-#ifndef SIGNAL_WO_H
-#define SIGNAL_WO_H
+#ifndef CELO_SIGNAL_WO_H
+#define CELO_SIGNAL_WO_H
 
+#include "VoidStruct.h"
 #include "Signal.h"
+
+namespace Celo {
 
 /**
 */
-template<class ObjWithSignal>
+template<class ObjWithSignal,class AdditionalData=VoidStruct,bool del=false>
 class Signal_WO : public Signal {
 public:
-    Signal_WO( ObjWithSignal *obj, const int *sigs ) : Signal( sigs ), obj( obj ) {}
-    virtual bool signal( int s ) { return obj->signal( s ); }
+    Signal_WO( ObjWithSignal *obj, const int *sigs, AdditionalData data = AdditionalData() ) : Signal( sigs ), data( data ), obj( obj ) {
+    }
+
+    ~Signal_WO() {
+        if ( del )
+            delete obj;
+    }
+
+    virtual bool signal( int s ) {
+        return obj->signal( this, s );
+    }
+
+    AdditionalData data;
 
 protected:
     ObjWithSignal *obj;
 };
 
+}
 
-
-#endif // SIGNAL_WO_H
+#endif // CELO_SIGNAL_WO_H

@@ -21,18 +21,34 @@
 #ifndef TIMER_WO_H
 #define TIMER_WO_H
 
+#include "VoidStruct.h"
 #include "Timer.h"
+
+namespace Celo {
 
 /**
 */
-template<class ObjWithTimeout>
+template<class ObjWithTimeout,class AdditionalData=VoidStruct,bool del=false>
 class Timer_WO : public Timer {
 public:
-    Timer_WO( ObjWithTimeout *obj, double delay ) : Timer( delay ), obj( obj ) {}
-    virtual void timeout() { obj->timeout(); }
+    Timer_WO( ObjWithTimeout *obj, double delay, AdditionalData data = AdditionalData() ) : Timer( delay ), data( data ), obj( obj ) {
+    }
+
+    ~Timer_WO() {
+        if ( del )
+            delete obj;
+    }
+
+    virtual bool timeout( int nb_expirations ) { ///< return false to delete this
+        return obj->timeout( this, nb_expirations );
+    }
+
+    AdditionalData data;
 
 protected:
     ObjWithTimeout *obj;
 };
+
+}
 
 #endif // TIMER_WO_H
