@@ -23,6 +23,8 @@
 
 #include "Config.h"
 
+namespace Celo {
+
 /**
 */
 class EventObj {
@@ -39,16 +41,17 @@ public:
     virtual void hup(); ///< if closed
     virtual void rdy(); ///< called after installation of this in event loop
 
+    // mod for this
+    void poll_out(); ///< add output polling for *this in ev_loop
 
-    virtual bool want_poll_inp_at_the_beginning() const;
-    virtual bool want_poll_out_at_the_beginning() const;
-    virtual bool cnt_default_value() const; ///< false if object is this is to be deleted after a request
-    virtual bool called_if_idle() const; ///< true if watching for idle, not for fd
+    // mod for event loop
+    void stop_event_loop( int ret_val = 0 ); ///< stop event loop
 
-    void poll_out(); ///< add output polling for $this in ev_loop
-
+    // attributes
     class EventLoop *ev_loop;
     int              fd;
 };
+
+}
 
 #endif // EVENTOBJ_H

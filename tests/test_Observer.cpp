@@ -18,33 +18,53 @@
 */
 
 
-#include <Celo/StringHelp.h>
+#include <Celo/Util/StringHelp.h>
 #include <Celo/EventLoop.h>
+#include <signal.h>
+#include <fcntl.h>
+
+#include <Celo/Listener_WO.h>
+#include <Celo/Parsable_WO.h>
 #include <Celo/Signal_WO.h>
 #include <Celo/Timer_WO.h>
-#include <signal.h>
-#include <iostream>
 
 struct MyObserver {
-    bool timeout() {
-        std::cout << "pouet" << std::endl;
-        return false;
+    bool timeout( Celo::Timer *eo, int nb_expirations ) {
+        PRINT( nb_expirations );
+        return true;
     }
-    bool signal( int sig ) {
-        std::cout << "sig " << sig << std::endl;
+
+    bool signal( Celo::Signal *eo, int sig ) {
+        PRINT( sig );
+        if ( sig == SIGINT )
+            eo->stop_event_loop( 10 );
+        return true;
+    }
+
+    bool connection( Celo::Listener *eo, int fd ) {
+        *eo->ev_loop << new Celo::Parsable_WO<MyObserver>( this, fd );
+        return true;
+    }
+
+    bool parse( Celo::Parsable *eo, char *beg, char *end ) {
+        std::cout << "Incoming Data:\n";
+        std::cout.write( beg, end - beg );
         return true;
     }
 };
 
 
 int main() {
+    using namespace Celo;
     EventLoop el;
     MyObserver mo;
 
-    int sigs[] = { SIGINT, SIGQUIT, SIGKILL, -1 };
+    int sigs[] = { SIGINT, SIGQUIT, SIGKILL, SIGUSR1, -1 };
     el << new Signal_WO<MyObserver>( &mo, sigs );
     
     el << new Timer_WO<MyObserver>( &mo, 1 );
+
+    el << new Listener_WO<MyObserver>( &mo, "8888" );
 
     return el.run();
 }

@@ -18,11 +18,14 @@
 */
 
 
-#ifndef SOCKETHELP_H
-#define SOCKETHELP_H
+#ifndef CELO_SOCKET_H
+#define CELO_SOCKET_H
+
+namespace Celo {
 
 int accepting_socket( int listen_fd, int non_blocking = true ); ///< return socket after accept
 int listening_socket( const char *port ); ///< return a binded listening socket on port $port
-int set_non_blocking( int sock ); ///<
 
-#endif // SOCKETHELP_H
+}
+
+#endif // CELO_SOCKET_H

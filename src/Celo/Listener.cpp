@@ -18,10 +18,11 @@
 */
 
 
-#include "StringHelp.h"
-#include "SocketHelp.h"
+#include "Util/Socket.h"
 #include "EventLoop.h"
 #include "Listener.h"
+
+namespace Celo {
 
 Listener::Listener( const char *port ) : EventObj( listening_socket( port ) ) {
 }
@@ -34,7 +35,8 @@ bool Listener::inp() {
         int nd = accepting_socket( fd );
         if ( nd == -1 )
             return true; // continue to listen
-        if ( EventObj *eo = event_obj_factory( nd ) )
-            *ev_loop << eo;
+        connection( nd );
     }
+}
+
 }

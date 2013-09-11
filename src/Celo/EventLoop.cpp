@@ -18,7 +18,7 @@
 */
 
 
-#include "StringHelp.h"
+#include "Util/StringHelp.h"
 #include "EventLoop.h"
 #include "EventObj.h"
 #include "IdleObj.h"
@@ -28,14 +28,16 @@
 #include <stdio.h>
 #include <errno.h>
 
+namespace Celo {
+
 EventLoop::EventLoop() {
     // epoll init
     event_fd = epoll_create1( 0 );
     if ( event_fd < 0 )
         perror( "epoll_create1" );
 
-    //
-    idle_list = 0;
+    // default values
+    ret = 0;
 }
 
 EventLoop::~EventLoop() {
@@ -49,7 +51,7 @@ int EventLoop::run() {
     // loop
     const int max_events = 64;
     epoll_event events[ max_events ];
-    while( cnt ) {
+    do {
         int nfds = epoll_wait( event_fd, events, max_events, -1 );
         if ( nfds == -1 ) {
             if ( errno != EINTR ) {
@@ -62,43 +64,37 @@ int EventLoop::run() {
         // for each event
         for( int n = 0; n < nfds; ++n ) {
             EventObj *rq = reinterpret_cast<EventObj *>( events[ n ].data.ptr );
-            bool cnt = rq->cnt_default_value();
+            bool keep_obj = false;
 
-            if ( events[ n ].events & EPOLLIN ) // input data
-                cnt |= rq->inp();
-            
-            if ( events[ n ].events & EPOLLOUT ) // output data
-                cnt |= rq->out();
+            if ( events[ n ].events & EPOLLIN ) // there are some input data
+                keep_obj |= rq->inp();
 
-            if ( events[ n ].events & EPOLLHUP ) { // end of the bananas ?
+            if ( events[ n ].events & EPOLLOUT ) // ready for output (after a EAGAIN)
+                keep_obj |= rq->out();
+
+            if ( events[ n ].events & EPOLLHUP ) { // end of the connection
                 rq->hup();
-                cnt = false;
+                keep_obj = false;
             }
 
-            if ( events[ n ].events & EPOLLERR ) { // error ?
+            if ( events[ n ].events & EPOLLERR ) { // error
                 rq->err();
-                cnt = false;
+                keep_obj = false;
             }
 
-            if ( not cnt ) {
-                // PRINT( rq->fd );
+            if ( not keep_obj )
                 delete rq;
-            }
-        }
 
-        //
-        for( IdleObj *o = idle_list; o; o = o->prev_idle ) {
-            if ( not o->inp() ) {
-                operator>>( o );
-                delete o;
-            }
+            if ( not cnt )
+                break;
         }
-    }
+    } while ( cnt );
 
-    return 0;
+    return ret;
 }
 
-void EventLoop::stop() {
+void EventLoop::stop( int ret_val ) {
+    ret = ret_val;
     cnt = false;
 }
 
@@ -112,9 +108,8 @@ EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
 
     epoll_event ev;
     ev.events =
-            ( EPOLLIN  * ev_obj->want_poll_inp_at_the_beginning() ) |
-            ( EPOLLOUT * ev_obj->want_poll_out_at_the_beginning() ) |
-            EPOLLET;
+            EPOLLIN | //
+            EPOLLET; // trigger
     ev.data.u64 = 0; // for valgrind on 32 bits machines
     ev.data.ptr = ev_obj;
     if ( epoll_ctl( event_fd, EPOLL_CTL_ADD, ev_obj->fd, &ev ) == -1 )
@@ -124,42 +119,13 @@ EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
     return *this;
 }
 
-EventLoop &EventLoop::operator<<( IdleObj *ev_obj ) {
-    ev_obj->prev_idle = idle_list;
-    idle_list = ev_obj;
-    return *this;
-}
-
 EventLoop &EventLoop::operator>>( EventObj *ev_obj ) {
     if ( epoll_ctl( event_fd, EPOLL_CTL_DEL, ev_obj->fd, 0 ) == -1 )
         perror( "epoll_ctl del" );
     return *this;
 }
 
-EventLoop &EventLoop::operator>>( IdleObj *ev_obj ) {
-    if ( idle_list == ev_obj ) {
-        idle_list = ev_obj->prev_idle;
-    } else {
-        for( IdleObj *o = idle_list; o; o = o->prev_idle ) {
-            if ( o->prev_idle == ev_obj ) {
-                o->prev_idle = ev_obj->prev_idle;
-                break;
-            }
-        }
-    }
-    return *this;
-}
-
-void EventLoop::mod( EventObj *ev_obj, bool want_out ) {
-    epoll_event ev;
-    ev.events = EPOLLIN | EPOLLET | ( want_out ? EPOLLOUT : 0 );
-    ev.data.u64 = 0; // for valgrind on 32 bits machines
-    ev.data.ptr = ev_obj;
-    if ( epoll_ctl( event_fd, EPOLL_CTL_MOD, ev_obj->fd, &ev ) == -1 )
-        perror( "epoll_ctl mod" );
-}
-
-void EventLoop::poll_out( EventObj *ev_obj ) {
+void EventLoop::poll_out_obj( EventObj *ev_obj ) {
     epoll_event ev;
     ev.events = EPOLLIN | EPOLLET | EPOLLOUT;
     ev.data.u64 = 0; // for valgrind on 32 bits machines
@@ -168,3 +134,4 @@ void EventLoop::poll_out( EventObj *ev_obj ) {
         perror( "epoll_ctl mod (poll out)" );
 }
 
+}

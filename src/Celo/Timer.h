@@ -23,6 +23,8 @@
 
 #include "EventObj.h"
 
+namespace Celo {
+
 /**
 */
 class Timer : public EventObj {
@@ -30,7 +32,9 @@ public:
     Timer( double delay );
     virtual bool inp();
 
-    virtual void timeout() = 0;
+    virtual bool timeout( int nb_expirations ) = 0; ///< return true to keep the timer running
 };
+
+}
 
 #endif // TIMER_H

@@ -23,6 +23,8 @@
 
 #include "EventObj.h"
 
+namespace Celo {
+
 /**
 */
 class Signal : public EventObj {
@@ -30,8 +32,9 @@ public:
     Signal( const int *sigs );
     virtual bool inp();
 
-    virtual bool signal( int s ) = 0;
+    virtual bool signal( int s ) = 0; ///< return true to continue watching for signal
 };
 
+}
 
 #endif // SIGNAL_H

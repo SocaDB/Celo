@@ -18,26 +18,37 @@
 */
 
 
-#ifndef LISTENER_WO_H
-#define LISTENER_WO_H
+#ifndef CELO_LISTENER_WO_H
+#define CELO_LISTENER_WO_H
 
+#include "VoidStruct.h"
 #include "Listener.h"
+
+namespace Celo {
 
 /**
 */
-template<class ObjWithEventObjFactory>
+template<class ObjWithEventObjFactory,class AdditionalData=VoidStruct,bool del=false>
 class Listener_WO : public Listener {
 public:
-    Listener_WO( ObjWithEventObjFactory *obj, const char *port ) : obj( obj ), Listener( port ) {
+    Listener_WO( ObjWithEventObjFactory *obj, const char *port, AdditionalData data = AdditionalData() ) : Listener( port ), obj( obj ), data( data ) {
     }
 
-    virtual EventObj *event_obj_factory( int fd ) {
-        return obj->event_obj_factory( fd );
+    ~Listener_WO() {
+        if ( del )
+            delete obj;
     }
+
+    virtual bool connection( int fd ) {
+        return obj->connection( this, fd );
+    }
+
+    AdditionalData data;
 
 protected:
     ObjWithEventObjFactory *obj;
 };
 
+}
 
-#endif // LISTENER_WO_H
+#endif // CELO_LISTENER_WO_H
