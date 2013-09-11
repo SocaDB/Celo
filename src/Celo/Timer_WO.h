@@ -21,7 +21,7 @@
 #ifndef TIMER_WO_H
 #define TIMER_WO_H
 
-#include "VoidStruct.h"
+#include "Util/VoidStruct.h"
 #include "Timer.h"
 
 namespace Celo {

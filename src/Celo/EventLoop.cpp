@@ -21,7 +21,6 @@
 #include "Util/StringHelp.h"
 #include "EventLoop.h"
 #include "EventObj.h"
-#include "IdleObj.h"
 
 #include <sys/epoll.h>
 #include <unistd.h>

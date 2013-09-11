@@ -4,10 +4,10 @@
 
 namespace Celo {
 
-Parsable::Parsable( int fd ) : EventObj( fd ) {
+Parsable::Parsable( int fd ) : Writable( fd ) {
 }
 
-Parsable::Parsable( VtableOnly vo ) : EventObj( vo ) {
+Parsable::Parsable( VtableOnly vo ) : Writable( vo ) {
 }
 
 bool Parsable::inp() {
@@ -16,12 +16,10 @@ bool Parsable::inp() {
     while ( true ) {
         ST ruff = read( fd, buff, size_buff );
         if ( ruff <= 0 ) {
-            // closed ?
-            if ( ruff == 0 )
-                return false;
             // need a retry ?
-            if ( errno == EAGAIN or errno == EWOULDBLOCK )
+            if ( ruff < 0 and ( errno == EAGAIN or errno == EWOULDBLOCK ) )
                 return true;
+            err();
             return false;
         }
 

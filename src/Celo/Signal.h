@@ -30,8 +30,9 @@ namespace Celo {
 class Signal : public EventObj {
 public:
     Signal( const int *sigs );
-    virtual bool inp();
 
+protected:
+    virtual bool inp();
     virtual bool signal( int s ) = 0; ///< return true to continue watching for signal
 };
 

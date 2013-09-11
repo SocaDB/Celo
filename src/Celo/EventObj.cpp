@@ -57,9 +57,5 @@ void EventObj::poll_out() {
     ev_loop->poll_out_obj( this );
 }
 
-void EventObj::stop_event_loop( int ret_val ) {
-    ev_loop->stop( ret_val );
-}
-
 
 }

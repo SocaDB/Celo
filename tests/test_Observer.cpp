@@ -23,6 +23,7 @@
 #include <signal.h>
 #include <fcntl.h>
 
+#include <Celo/Listener_Factory.h>
 #include <Celo/Listener_WO.h>
 #include <Celo/Parsable_WO.h>
 #include <Celo/Signal_WO.h>
@@ -37,19 +38,24 @@ struct MyObserver {
     bool signal( Celo::Signal *eo, int sig ) {
         PRINT( sig );
         if ( sig == SIGINT )
-            eo->stop_event_loop( 10 );
+            eo->ev_loop->stop( 10 );
         return true;
     }
 
-    bool connection( Celo::Listener *eo, int fd ) {
-        *eo->ev_loop << new Celo::Parsable_WO<MyObserver>( this, fd );
+    template<class EO>
+    bool connection( EO *eo, int fd ) {
+        *eo->ev_loop << new Celo::Parsable_WO<MyObserver,int>( this, fd, eo->data );
         return true;
     }
 
-    bool parse( Celo::Parsable *eo, char *beg, char *end ) {
-        std::cout << "Incoming Data:\n";
+    template<class EO>
+    bool parse( EO *eo, char *beg, char *end ) {
+        std::cout << "Incoming Data: (data attribute=" << eo->data << ")\n";
+        std::cout;
         std::cout.write( beg, end - beg );
-        return true;
+
+        eo->write_cst( "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nHello" );
+        return false;
     }
 };
 
@@ -64,7 +70,10 @@ int main() {
     
     el << new Timer_WO<MyObserver>( &mo, 1 );
 
-    el << new Listener_WO<MyObserver>( &mo, "8888" );
+    el << new Listener_WO<MyObserver,int>( &mo, "8888", 16 );
+
+    // for a test
+    // el << new Listener_Factory<Parsable_WO<MyObserver>,MyObserver *>( "8889", &mo );
 
     return el.run();
 }

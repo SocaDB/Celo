@@ -18,9 +18,9 @@
 */
 
 
-#include "StaticFileData.h"
-#include "InstallDir.h"
-#include "StreamSep.h"
+#include "Celo/Http/StaticFileData.h"
+#include "Celo/Util/StreamSep.h"
+#include "Celo/InstallDir.h"
 #include <stdlib.h>
 #include <fstream>
 #include <string>

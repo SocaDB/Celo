@@ -30,8 +30,9 @@ namespace Celo {
 class Timer : public EventObj {
 public:
     Timer( double delay );
-    virtual bool inp();
 
+protected:
+    virtual bool inp();
     virtual bool timeout( int nb_expirations ) = 0; ///< return true to keep the timer running
 };
 

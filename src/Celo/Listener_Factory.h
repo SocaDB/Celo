@@ -21,21 +21,28 @@
 #ifndef LISTENER_FACTORY_H
 #define LISTENER_FACTORY_H
 
-#include "Listener_WithLaunch.h"
+#include "Util/VoidStruct.h"
+#include "Listener.h"
+
+namespace Celo {
 
 /**
+  Listener that creates an object of type EO (with the corresponding fd, and data as constructor arguments) each time there's a new connection
 */
-template<class EO,class PR = void,class PA = Listener_WithLaunch>
+template<class EO,class AdditionnalData=VoidStruct,class PA=Listener>
 class Listener_Factory : public PA {
 public:
-    Listener_Factory( const char *port, PR *pr = 0 ) : PA( port ), pr( pr ) {}
+    Listener_Factory( const char *port, AdditionnalData data = AdditionnalData() ) : PA( port ), data( data ) {}
     Listener_Factory( typename PA::VtableOnly vo ) : PA( vo ) {}
 
-    virtual EventObj *event_obj_factory( int fd ) {
-        return new EO( fd, pr );
+    virtual bool connection( int fd ) {
+        *PA::ev_loop << new EO( data, fd );
+        return true;
     }
 
-    PR *pr;
+    AdditionnalData data;
 };
+
+}
 
 #endif // LISTENER_FACTORY_H

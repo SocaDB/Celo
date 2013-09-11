@@ -21,7 +21,7 @@
 #ifndef EVENTOBJ_H
 #define EVENTOBJ_H
 
-#include "Config.h"
+#include "TypeConfig.h"
 
 namespace Celo {
 
@@ -35,21 +35,21 @@ public:
     EventObj( int fd );
     virtual ~EventObj();
 
+    // mod for this
+    void poll_out(); ///< add output polling for *this in ev_loop
+
+    // attributes
+    class EventLoop *ev_loop; ///< the event_loop where this is registered
+    int              fd;      ///< file descriptor
+
+protected:
+    friend class EventLoop;
+
     virtual bool inp(); ///< if input data. return true if needs or may accept more.
     virtual bool out(); ///< if ready for output. return true if there is still remaining data to send.
     virtual void err(); ///< if error
     virtual void hup(); ///< if closed
     virtual void rdy(); ///< called after installation of this in event loop
-
-    // mod for this
-    void poll_out(); ///< add output polling for *this in ev_loop
-
-    // mod for event loop
-    void stop_event_loop( int ret_val = 0 ); ///< stop event loop
-
-    // attributes
-    class EventLoop *ev_loop;
-    int              fd;
 };
 
 }

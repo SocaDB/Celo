@@ -33,10 +33,9 @@ public:
     Listener( const char *port );
     Listener( VtableOnly );
 
+protected:
     virtual bool inp();
-
-    // called after an accept
-    virtual bool connection( int fd ) = 0;
+    virtual bool connection( int fd ) = 0; ///< called after an accept
 };
 
 }

@@ -21,7 +21,7 @@
 #ifndef CELO_SIGNAL_WO_H
 #define CELO_SIGNAL_WO_H
 
-#include "VoidStruct.h"
+#include "Util/VoidStruct.h"
 #include "Signal.h"
 
 namespace Celo {

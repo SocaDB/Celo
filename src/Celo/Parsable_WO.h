@@ -1,7 +1,7 @@
 #ifndef CELO_PARSABLE_WO_H
 #define CELO_PARSABLE_WO_H
 
-#include "VoidStruct.h"
+#include "Util/VoidStruct.h"
 #include "Parsable.h"
 
 namespace Celo {
@@ -10,10 +10,10 @@ namespace Celo {
   Event_obj which calls obj->parse( beg, end ) each time new data comes in
 
 */
-template<class ObjWithSignal,class AdditionalData=VoidStruct,bool del=false>
+template<class ObjWithParse,class AdditionalData=VoidStruct,bool del=false>
 class Parsable_WO : public Parsable {
 public:
-    Parsable_WO( ObjWithSignal *obj, int fd, AdditionalData data = AdditionalData() ) : Parsable( fd ), data( data ), obj( obj ) {
+    Parsable_WO( ObjWithParse *obj, int fd, AdditionalData data = AdditionalData() ) : Parsable( fd ), data( data ), obj( obj ) {
     }
 
     ~Parsable_WO() {
@@ -28,7 +28,7 @@ public:
     AdditionalData data;
 
 protected:
-    ObjWithSignal *obj;
+    ObjWithParse *obj;
 };
 
 }

@@ -6,7 +6,7 @@ all: cmp test_Observer
 
 cmp: inst_dir ext/Sipe
 	make -C ext/Sipe
-	${MCP} -ne -o listener_generator src/Celo/listener_generator.cpp
+	${MCP} -ne -o listener_generator src/listener_generator.cpp
 
 test_%:
 	${MCP} -ne tests/$@.cpp

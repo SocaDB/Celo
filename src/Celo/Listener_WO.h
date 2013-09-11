@@ -21,17 +21,17 @@
 #ifndef CELO_LISTENER_WO_H
 #define CELO_LISTENER_WO_H
 
-#include "VoidStruct.h"
+#include "Util/VoidStruct.h"
 #include "Listener.h"
 
 namespace Celo {
 
 /**
 */
-template<class ObjWithEventObjFactory,class AdditionalData=VoidStruct,bool del=false>
+template<class ObjWithConnection,class AdditionalData=VoidStruct,bool del=false>
 class Listener_WO : public Listener {
 public:
-    Listener_WO( ObjWithEventObjFactory *obj, const char *port, AdditionalData data = AdditionalData() ) : Listener( port ), obj( obj ), data( data ) {
+    Listener_WO( ObjWithConnection *obj, const char *port, AdditionalData data = AdditionalData() ) : Listener( port ), obj( obj ), data( data ) {
     }
 
     ~Listener_WO() {
@@ -46,7 +46,7 @@ public:
     AdditionalData data;
 
 protected:
-    ObjWithEventObjFactory *obj;
+    ObjWithConnection *obj;
 };
 
 }

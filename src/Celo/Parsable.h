@@ -1,14 +1,14 @@
 #ifndef PARSABLE_H
 #define PARSABLE_H
 
-#include "EventObj.h"
+#include "Writable.h"
 
 namespace Celo {
 
 /**
   Event_obj which calls parse( beg, end ) each time new data comes in
 */
-class Parsable : public EventObj {
+class Parsable : public Writable {
 public:
     Parsable( int fd );
     Parsable( VtableOnly vo );

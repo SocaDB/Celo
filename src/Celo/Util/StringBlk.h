@@ -21,8 +21,10 @@
 #ifndef STRINGBLK_H
 #define STRINGBLK_H
 
+#include "../TypeConfig.h"
 #include "StringHelp.h"
-#include "Config.h"
+
+namespace Celo {
 
 /**
 */
@@ -49,6 +51,8 @@ inline std::ostream &operator<<( std::ostream &os, const StringBlk &s ) {
     for( const StringBlk::Item *item = &s._beg; tot; item = item->next( tot ) )
         os.write( item->dat, item->loc );
     return os;
+}
+
 }
 
 #endif // STRINGBLK_H
