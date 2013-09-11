@@ -10,12 +10,12 @@ namespace Celo {
 */
 class Parsable : public Writable {
 public:
-    Parsable( int fd );
     Parsable( VtableOnly vo );
-
-    virtual bool inp();
+    Parsable( int fd );
 
 protected:
+    virtual bool inp();
+
     // to be redefined
     virtual bool parse( char *beg, char *end ) = 0; ///< return false if we have enough data
 };

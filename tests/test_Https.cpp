@@ -18,46 +18,35 @@
 */
 
 
-#include <Celo/EventObj_WO_SSL.h>
-#include <Celo/StringHelp.h>
+//#include <Celo/EventObj_WO_SSL.h>
+#include <Celo/Listener_Factory.h>
+#include <Celo/Util/StringHelp.h>
 #include <Celo/EventLoop.h>
-#include <Celo/Listener.h>
+#include <Celo/Parsable.h>
 #include <Celo/SslCtx.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
+//#include <string.h>
+//#include <stdlib.h>
+//#include <unistd.h>
+//#include <stdio.h>
 
-struct MyHttpsRequest : EventObj_WO_SSL {
-    MyHttpsRequest( SSL_CTX *ssl_ctx, int fd ) : EventObj_WO_SSL( ssl_ctx, fd ) {
+struct MyHttpsRequest : Celo::Parsable {
+    MyHttpsRequest( SSL_CTX *ssl_ctx, int fd ) : Celo::Parsable( fd ) {
     }
 
-    virtual int parse( char *beg, char *end ) {
-        write( 0, beg, end - beg );
-        return OK;
-    }
-};
+    virtual bool parse( char *beg, char *end ) {
+        std::cout.write( beg, end - beg );
 
-struct MyListener : Listener {
-    MyListener( const char *port, SslCtx *ssl_ctx ) : Listener( port ), ssl_ctx( ssl_ctx ) {
+        write_cst( "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nHello https" );
+        return false;
     }
-
-    virtual void rdy() {
-        system( "google-chrome https://localhost:8899 &" );
-    }
-
-    virtual EventObj *event_obj_factory( int fd ) {
-        return new MyHttpsRequest( ssl_ctx->ctx, fd );
-    }
-
-    SslCtx *ssl_ctx;
 };
 
 int main() {
+    using namespace Celo;
     EventLoop el;
 
     SslCtx ssl_ctx( "mycert.pem", "mycert.pem" );
-    MyListener l( "8899", &ssl_ctx );
+    Listener_Factory<MyHttpsRequest,SSL_CTX *> l( "8888", ssl_ctx.ctx );
     el << &l;
 
     return el.run();

@@ -68,4 +68,6 @@ src/Celo/Signal.cpp
 tests/test_Observer.cpp
 tests/test_Https.cpp
 tests/test_Http.cpp
-tests/test_SpeedyLabel.cpp
+src/Celo/Filtered.h
+src/Celo/Filtered.cpp
+src/Celo/Filter.h
