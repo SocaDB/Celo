@@ -9,7 +9,6 @@ namespace Celo {
 /**
   Event_obj which calls obj->parse( beg, end ) each time new data comes in
 
-  Currently, mostly used for tests (because in most of the case it's easier to get and play with a new object each time there's a new connection -- e.g. to get session info, etc...)
 */
 template<class ObjWithSignal,class AdditionalData=VoidStruct,bool del=false>
 class Parsable_WO : public Parsable {

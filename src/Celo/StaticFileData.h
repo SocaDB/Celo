@@ -21,7 +21,7 @@
 #ifndef STATICFILEDATA_H
 #define STATICFILEDATA_H
 
-#include "StringHelp.h"
+#include "Util/StringHelp.h"
 #include <vector>
 
 /**

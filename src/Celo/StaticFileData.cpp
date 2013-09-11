@@ -20,7 +20,6 @@
 
 #include "DirectoryIterator.h"
 #include "StaticFileData.h"
-#include "StringHelp.h"
 #include <algorithm>
 #include <fstream>
 #include <sstream>

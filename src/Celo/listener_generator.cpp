@@ -20,7 +20,6 @@
 
 #include "StaticFileData.h"
 #include "InstallDir.h"
-#include "StringHelp.h"
 #include "StreamSep.h"
 #include <stdlib.h>
 #include <fstream>
