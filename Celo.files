@@ -71,3 +71,5 @@ tests/test_Http.cpp
 src/Celo/Filtered.h
 src/Celo/Filtered.cpp
 src/Celo/Filter.h
+src/Celo/Filter_SSL.h
+src/Celo/Filter_SSL.cpp

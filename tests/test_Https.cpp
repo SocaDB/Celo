@@ -21,16 +21,17 @@
 //#include <Celo/EventObj_WO_SSL.h>
 #include <Celo/Listener_Factory.h>
 #include <Celo/Util/StringHelp.h>
+#include <Celo/Filter_SSL.h>
 #include <Celo/EventLoop.h>
-#include <Celo/Parsable.h>
+#include <Celo/Filtered.h>
 #include <Celo/SslCtx.h>
 //#include <string.h>
 //#include <stdlib.h>
 //#include <unistd.h>
 //#include <stdio.h>
 
-struct MyHttpsRequest : Celo::Parsable {
-    MyHttpsRequest( SSL_CTX *ssl_ctx, int fd ) : Celo::Parsable( fd ) {
+struct MyHttpsRequest : Celo::Filtered {
+    MyHttpsRequest( SSL_CTX *ssl_ctx, int fd ) : Celo::Filtered( fd, &f ), f( ssl_ctx ) {
     }
 
     virtual bool parse( char *beg, char *end ) {
@@ -39,6 +40,8 @@ struct MyHttpsRequest : Celo::Parsable {
         write_cst( "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nHello https" );
         return false;
     }
+
+    Celo::Filter_SSL f;
 };
 
 int main() {

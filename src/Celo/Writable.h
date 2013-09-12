@@ -14,13 +14,13 @@ public:
     Writable( int fd );
     ~Writable();
 
-    void write_cst( const char *data, ST size, bool end = false ); ///< send "permanent" data (data won't be freed so we don't need to copy it if necessary to postpone the write)
-    void write_cst( const char *data ); ///< \0 ended version
+    virtual void write_cst( const char *data, ST size, bool end = false ); ///< send "permanent" data (data won't be freed so we don't need to copy it if necessary to postpone the write)
+    virtual void write_cst( const char *data ); ///< \0 ended version
 
-    void write_str( const char *data, ST size, bool end = false ); ///< send "non permanent" data, i.e. data will be copied if it cannot be sent immediatly
-    void write_str( const char *data ); ///< \0 ended version
+    virtual void write_str( const char *data, ST size, bool end = false ); ///< send "non permanent" data, i.e. data will be copied if it cannot be sent immediatly
+    virtual void write_str( const char *data ); ///< \0 ended version
 
-    void write_fdd( int fd, ST off, ST len ); ///< write data from file described by fd (its file descriptor)
+    virtual void write_fdd( int fd, ST off, ST len ); ///< write data from file described by fd (its file descriptor)
 
     void wait_for_another_write(); ///< append RemOutputWait to the list of objects to be sent that will say "done" if followed by something to send
 

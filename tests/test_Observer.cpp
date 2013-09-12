@@ -72,7 +72,7 @@ int main() {
 
     el << new Listener_WO<MyObserver,int>( &mo, "8888", 16 );
 
-    // for a test (not a really convenient example)
+    // for a test (not really a convenient example)
     el << new Listener_Factory<Parsable_WO<MyObserver,int>,MyObserver *>( "8889", &mo );
 
     return el.run();
