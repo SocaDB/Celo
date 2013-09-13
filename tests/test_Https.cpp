@@ -18,30 +18,25 @@
 */
 
 
-//#include <Celo/EventObj_WO_SSL.h>
 #include <Celo/Listener_Factory.h>
+#include <Celo/Filter/Identity.h>
 #include <Celo/Util/StringHelp.h>
-#include <Celo/Filter_SSL.h>
 #include <Celo/EventLoop.h>
 #include <Celo/Filtered.h>
 #include <Celo/SslCtx.h>
-//#include <string.h>
-//#include <stdlib.h>
-//#include <unistd.h>
-//#include <stdio.h>
 
 struct MyHttpsRequest : Celo::Filtered {
-    MyHttpsRequest( SSL_CTX *ssl_ctx, int fd ) : Celo::Filtered( fd, &f ), f( ssl_ctx ) {
+    MyHttpsRequest( SSL_CTX *ssl_ctx, int fd ) : Celo::Filtered( fd, &f, &f )/*, f( ssl_ctx )*/ {
     }
 
-    virtual bool parse( char *beg, char *end ) {
+    virtual bool parse( const char *beg, const char *end ) {
         std::cout.write( beg, end - beg );
 
-        write_cst( "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nHello https" );
+        this->write_cst( "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nHello https" );
         return false;
     }
 
-    Celo::Filter_SSL f;
+    Celo::Identity f;
 };
 
 int main() {

@@ -21,38 +21,12 @@ Filter_SSL::~Filter_SSL() {
 }
 
 ST Filter_SSL::new_inp( const char *data, ST size ) {
-    PRINT( size );
     return BIO_write( rbio, data, size );
 }
 
 ST Filter_SSL::new_out( const char *data, ST size ) {
-    return BIO_write( wbio, data, size );
-}
-
-ST Filter_SSL::get_inp( char *data, ST max_size ) {
-    // try to read data
-    ST read = SSL_read( ssl, data, max_size );
-
-    // OK ?
-    PRINT( SSL_get_error( ssl, read ) );
-    switch ( SSL_get_error( ssl, read ) ) {
-    case SSL_ERROR_NONE:
-        return read;
-    case SSL_ERROR_ZERO_RETURN:
-        return END_OF_THE_CONNECTION;
-    case SSL_ERROR_WANT_READ:
-        return NEED_MORE_INPUT;
-    case SSL_ERROR_WANT_WRITE:
-        TODO; // should not happen (we're using BIO) !
-        return ERROR;
-    default:
-        return ERROR;
-    }
-}
-
-ST Filter_SSL::get_out( char *data, ST max_size ) {
     // try write encoded data to wbio
-    ST sent = SSL_write( ssl, data, max_size );
+    ST sent = SSL_write( ssl, data, size );
 
     // everything OK ?
     switch ( SSL_get_error( ssl, sent ) ) {
@@ -69,6 +43,30 @@ ST Filter_SSL::get_out( char *data, ST max_size ) {
     default:
         return ERROR;
     }
+}
+
+ST Filter_SSL::get_inp( char *data, ST max_size ) {
+    // try to read data
+    ST read = SSL_read( ssl, data, max_size );
+
+    // OK ?
+    switch ( SSL_get_error( ssl, read ) ) {
+    case SSL_ERROR_NONE:
+        return read;
+    case SSL_ERROR_ZERO_RETURN:
+        return END_OF_THE_CONNECTION;
+    case SSL_ERROR_WANT_READ:
+        return NEED_MORE_INPUT;
+    case SSL_ERROR_WANT_WRITE:
+        TODO; // should not happen (we're using BIO) !
+        return ERROR;
+    default:
+        return ERROR;
+    }
+}
+
+ST Filter_SSL::get_out( char *data, ST max_size ) {
+    return BIO_read( wbio, data, max_size );
 }
 
 }
