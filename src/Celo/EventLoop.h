@@ -23,8 +23,9 @@
 
 namespace Celo {
 
-class EventObj;
-class IdleObj;
+namespace Events {
+class Event;
+}
 
 /**
 */
@@ -33,22 +34,21 @@ public:
     EventLoop();
     ~EventLoop();
 
-    int run(); ///< Infinite loop, until stop() is called. return err code < 0 if pb. return 0 if ok.
-    void stop( int ret_val = 0 ); ///< may be called during an event to say that the infinite loop may stop.
+    // loop
+    int run(); ///< Infinite loop, until stop() is called. return err code < 0 if pb. return ret_val (sent by this->stop) if ok.
+    void stop( int ret_val = 0 ); ///< may be called during a callback to please the infinite loop to gracefully stop after that.
 
-    // additions
-    EventLoop &operator<<( EventObj *ev_obj ); ///< add a event. Thread safe
-    EventLoop &operator<<( IdleObj *ev_obj ); ///< add a "idle" event. Thread safe
+    // additions of event objects
+    EventLoop &operator<<( Events::Event *ev_obj ); ///< add a event. Thread safe
 
-    // suppressions
-    EventLoop &operator>>( EventObj *ev_obj ); ///< not thread safe
-    EventLoop &operator>>( IdleObj *ev_obj ); ///< not thread safe
+    // suppressions of event objects
+    EventLoop &operator>>( Events::Event *ev_obj ); ///< not thread safe
 
     // modifications
-    void poll_out_obj( EventObj *ev_obj ); ///< poll ev_obj for output
+    void poll_out_obj( Events::Event *ev_obj ); ///< look for ev_obj availability for output
 
 protected:
-    int  event_fd; ///< file
+    int  event_fd; ///< for epoll
     int  ret;
     bool cnt; ///< continue ?
 };

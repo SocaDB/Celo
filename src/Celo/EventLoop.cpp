@@ -19,8 +19,8 @@
 
 
 #include "Util/StringHelp.h"
+#include "Events/Event.h"
 #include "EventLoop.h"
-#include "EventObj.h"
 
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -62,7 +62,7 @@ int EventLoop::run() {
 
         // for each event
         for( int n = 0; n < nfds; ++n ) {
-            EventObj *rq = reinterpret_cast<EventObj *>( events[ n ].data.ptr );
+            Events::Event *rq = reinterpret_cast<Events::Event *>( events[ n ].data.ptr );
             bool keep_obj = false;
 
             if ( events[ n ].events & EPOLLIN ) // there are some input data
@@ -97,7 +97,7 @@ void EventLoop::stop( int ret_val ) {
     cnt = false;
 }
 
-EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
+EventLoop &EventLoop::operator<<( Events::Event *ev_obj ) {
     if ( not ev_obj or ev_obj->fd < 0 ) {
         delete ev_obj;
         return *this;
@@ -118,13 +118,13 @@ EventLoop &EventLoop::operator<<( EventObj *ev_obj ) {
     return *this;
 }
 
-EventLoop &EventLoop::operator>>( EventObj *ev_obj ) {
+EventLoop &EventLoop::operator>>( Events::Event *ev_obj ) {
     if ( epoll_ctl( event_fd, EPOLL_CTL_DEL, ev_obj->fd, 0 ) == -1 )
         perror( "epoll_ctl del" );
     return *this;
 }
 
-void EventLoop::poll_out_obj( EventObj *ev_obj ) {
+void EventLoop::poll_out_obj( Events::Event *ev_obj ) {
     epoll_event ev;
     ev.events = EPOLLIN | EPOLLET | EPOLLOUT;
     ev.data.u64 = 0; // for valgrind on 32 bits machines

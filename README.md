@@ -1,17 +1,17 @@
 What is Celo ?
 ===========
 
-Celo is an event loop (as e.g. libevent, libev, ...). It is an interface to syscall like epoll (if linux) to execute callbacks for new data on (or availability of) sockets, timeouts, signals (SIGxxx), ...
+Celo is an event loop (as for example libevent). It is basically an interface to syscalls like epoll, timerfd, ... to execute callbacks for sockets, timers, signals and so on.
 
-It may be used as a main loop for a server (maybe the main usage), a GUI, ...
+It may be used as a main loop for a server (maybe the main usage), a GUI, etc...
 
-Currently, it supports
-* raw sockets (you are informed of changes and you decide how to read, write, ...),
+Currently, it basically supports
+* raw sockets (you are informed of changes and you decide how to make the interactions),
 * periodic (cancelable) timers,
 * signals.
 
-Optionnally you can find classes to help for
-* asynchronous reads and writes (with optional filtering),
+Optionnally you can find classes to help manage
+* asynchronous buffered IO (with zero-copy file transmission) with optional filtering,
 * SSL (via OpenSSL) e.g. for https,
 * pools of (restartable and cancelable) one shot timers
 * HTTP (fast) parsing (thanks to [SIPE|...]), different kind of HTTP servers, ...

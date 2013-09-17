@@ -18,25 +18,67 @@
 */
 
 
-#include <Celo/Listener_Factory.h>
-#include <Celo/Filter/Identity.h>
+#include <Celo/Events/ConnectionFactoryListener.h>
+#include <Celo/Events/SslBufferedConnection.h>
 #include <Celo/Util/StringHelp.h>
+#include <Celo/Util/SslCtx.h>
 #include <Celo/EventLoop.h>
-#include <Celo/Filtered.h>
-#include <Celo/SslCtx.h>
 
-struct MyHttpsRequest : Celo::Filtered {
-    MyHttpsRequest( SSL_CTX *ssl_ctx, int fd ) : Celo::Filtered( fd, &f, &f )/*, f( ssl_ctx )*/ {
+struct MyHttpsRequest : Celo::Events::SslBufferedConnection {
+    MyHttpsRequest( SSL_CTX *ssl_ctx, int fd ) : Celo::Events::SslBufferedConnection( ssl_ctx, fd ) {
+        PRINT( "new" );
     }
 
-    virtual bool parse( const char *beg, const char *end ) {
+    virtual ~MyHttpsRequest() {
+        PRINT( "destroy" );
+    }
+
+    virtual void hup() {
+        PRINT( "hup" );
+    }
+
+    virtual void err() {
+        PRINT( "err" );
+    }
+
+
+    virtual bool parse( char *beg, char *end ) {
         std::cout.write( beg, end - beg );
+        PRINT( end - beg );
 
-        this->write_cst( "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nHello https" );
-        return false;
+        if ( beg[ 0 ] == 'G' ) {
+            this->write_cst(
+                    "HTTP/1.0 200 OK\nContent-Type: text/html\n\n"
+                    "<html>\n"
+                    " <head>\n"
+                    "  <title>test</title>\n"
+                    "  <meta http-equiv='content-type' content='text/html; charset=UTF-8'/>\n"
+                    "  <script type='text/javascript'>\n"
+                    "   upload_func = function( data ) {\n"
+                    "    var f = document.getElementById( 'yop' ).files[0];\n"
+                    "    var x = new XMLHttpRequest();\n"
+                    "    x.open( 'PUT', '/', true );\n"
+                    "    x.send( f );\n"
+                    "   }\n"
+                    "  </script>\n"
+                    " </head>\n"
+                    " <body>\n"
+                    "   <input type='file' name='yop' id='yop'/>\n"
+                    "   <input type='submit' value='Upload' onclick='upload_func()'/>\n"
+                    " </body>\n"
+                    "</html>\n"
+            ); // enctype='multipart/form-data'  method='post'
+            return false;
+        }
+
+        if ( beg[ 0 ] == 'P' ) {
+            this->write_cst( "HTTP/1.0 200 OK\n\n" );
+            // TODO : close the connection !
+            // or at least
+        }
+
+        return true;
     }
-
-    Celo::Identity f;
 };
 
 int main() {
@@ -44,7 +86,7 @@ int main() {
     EventLoop el;
 
     SslCtx ssl_ctx( "mycert.pem", "mycert.pem" );
-    Listener_Factory<MyHttpsRequest,SSL_CTX *> l( "8888", ssl_ctx.ctx );
+    Events::ConnectionFactoryListener<MyHttpsRequest,SSL_CTX *> l( "8888", ssl_ctx.ctx );
     el << &l;
 
     return el.run();

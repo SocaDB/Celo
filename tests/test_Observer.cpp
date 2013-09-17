@@ -23,19 +23,19 @@
 #include <signal.h>
 #include <fcntl.h>
 
-#include <Celo/Listener_Factory.h>
-#include <Celo/Listener_WO.h>
-#include <Celo/Parsable_WO.h>
-#include <Celo/Signal_WO.h>
-#include <Celo/Timer_WO.h>
+#include <Celo/Events/ConnectionFactoryListener.h>
+#include <Celo/Events/BufferedConnection_WO.h>
+#include <Celo/Events/Listener_WO.h>
+#include <Celo/Events/Signal_WO.h>
+#include <Celo/Events/Timer_WO.h>
 
 struct MyObserver {
-    bool timeout( Celo::Timer *eo, int nb_expirations ) {
+    bool timeout( Celo::Events::Timer *eo, int nb_expirations ) {
         PRINT( nb_expirations );
         return true;
     }
 
-    bool signal( Celo::Signal *eo, int sig ) {
+    bool signal( Celo::Events::Signal *eo, int sig ) {
         PRINT( sig );
         if ( sig == SIGINT )
             eo->ev_loop->stop( 10 );
@@ -44,7 +44,7 @@ struct MyObserver {
 
     template<class EO>
     bool connection( EO *eo, int fd ) {
-        *eo->ev_loop << new Celo::Parsable_WO<MyObserver,int>( this, fd, eo->data );
+        *eo->ev_loop << new Celo::Events::BufferedConnection_WO<MyObserver,int>( this, fd, eo->data );
         return true;
     }
 
@@ -66,14 +66,14 @@ int main() {
     MyObserver mo;
 
     int sigs[] = { SIGINT, SIGQUIT, SIGKILL, SIGUSR1, -1 };
-    el << new Signal_WO<MyObserver>( &mo, sigs );
+    el << new Events::Signal_WO<MyObserver>( &mo, sigs );
     
-    el << new Timer_WO<MyObserver>( &mo, 1 );
+    el << new Events::Timer_WO<MyObserver>( &mo, 1 );
 
-    el << new Listener_WO<MyObserver,int>( &mo, "8888", 16 );
+    el << new Events::Listener_WO<MyObserver,int>( &mo, "8888", 16 );
 
     // for a test (not really a convenient example)
-    el << new Listener_Factory<Parsable_WO<MyObserver,int>,MyObserver *>( "8889", &mo );
+    el << new Events::ConnectionFactoryListener<Events::BufferedConnection_WO<MyObserver,int>,MyObserver *>( "8889", &mo );
 
     return el.run();
 }

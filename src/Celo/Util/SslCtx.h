@@ -5,6 +5,8 @@
 #include "openssl/err.h"
 #include "openssl/bio.h"
 
+namespace Celo {
+
 /**
 */
 class SslCtx {
@@ -13,5 +15,7 @@ public:
 
     SSL_CTX *ctx;
 };
+
+} // namespace Celo
 
 #endif // SSLCTX_H

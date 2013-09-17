@@ -3,6 +3,8 @@
 #pragma lib_name crypto
 #pragma lib_name ssl
 
+namespace Celo {
+
 static bool ssl_initialized = false;
 
 void init_ssl_if_necessary() {
@@ -11,7 +13,7 @@ void init_ssl_if_necessary() {
     ssl_initialized = true;
 
     SSL_load_error_strings();
-    ERR_load_BIO_strings();
+    // ERR_load_BIO_strings();
     OpenSSL_add_all_algorithms(); // load & register all cryptos, etc.
     SSL_library_init();
 }
@@ -43,3 +45,6 @@ SslCtx::SslCtx( const char *cert_file, const char *key_file ) {
         abort();
     }
 }
+
+} // namespace Celo
+
