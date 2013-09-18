@@ -7,7 +7,14 @@ namespace Celo {
 namespace Events {
 
 /**
+  Use write_xx to send data. If the socket is unavailable, output will be postponed.
 
+  Each time there are some new input data, parse( ... ) is called. If parse returns false, this won't wait anymore for new input.
+
+  Of course, if this does not wait for new input and there are no data to send, this is deleted.
+
+
+  TODO: timeout if waiting for input data for too long
 */
 class BufferedConnection : public Event {
 public:
