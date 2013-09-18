@@ -65,7 +65,11 @@ protected:
     virtual void rdy(); ///< called after installation of this in event loop
 
     void wait_for_more_inp() { waiting |= WF_more_inp; }
-    void wait_for_more_out() { waiting |= WF_more_out; }
+    void wait_for_more_out( bool need_poll_out = true ) { waiting |= WF_more_out; if ( need_poll_out ) poll_out(); }
+
+    void rd_hup_error() { errors |= EF_rd_hup_error; reg_for_deletion(); }
+    void hup_error() { errors |= EF_hup_error; reg_for_deletion(); }
+
     void reg_for_deletion();
 
     // attributes

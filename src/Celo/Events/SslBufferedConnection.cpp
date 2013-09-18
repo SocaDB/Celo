@@ -50,12 +50,12 @@ void SslBufferedConnection::write_fdd( int fd, ST off, ST len ) {
     TODO;
 }
 
-bool SslBufferedConnection::still_has_something_to_send() const {
+bool SslBufferedConnection::_still_has_something_to_send() const {
     return orig_to_write != 0;
 }
 
 void SslBufferedConnection::_write_ssl( const char *data, ST size, bool end ) {
-    // we want to write something but the preceding write has to be issued again and inp() / out() has not been called
+    // we want to write something but the preceding write has to be issued again during an inp() or out()
     // -> store data to write in the buffer orig_to_write
     // (OK to change the args of SSL_write thanks to SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
     if ( w_state != want_nothing )
@@ -71,27 +71,24 @@ void SslBufferedConnection::_write_ssl( const char *data, ST size, bool end ) {
             size -= ruff;
             break;
         case SSL_ERROR_WANT_READ:
+            _append_to_data_to_write( data, size );
             w_state = want_to_read; // we will have to issue again the SSL_write() during the next inp()
-            state.waiting_for_more_inp = true;
-            return _append_to_data_to_write( data, size );
+            return wait_for_more_inp();
         case SSL_ERROR_WANT_WRITE:
+            _append_to_data_to_write( data, size );
             w_state = want_to_write; // we will have to issue again the SSL_write() during the next out()
-            state.waiting_for_more_inp = true;
-            if ( not already_polled_out ) {
-                already_polled_out = true;
-                poll_out();
-            }
-            return _append_to_data_to_write( data, size );
-        case SSL_ERROR_SYSCALL:
+            return wait_for_more_out();
         case SSL_ERROR_ZERO_RETURN:
-            return reg_for_deletion();
+            return rd_hup_error();
+        case SSL_ERROR_SYSCALL:
+            return hup_error();
         default:
-            return ssl_err();
+            return ssl_error();
         }
     }
 }
 
-bool SslBufferedConnection::inp() {
+void SslBufferedConnection::inp() {
     // need to issue again a SSL_write ?
     if ( w_state == want_to_read ) {
         while ( size_to_write ) {
@@ -111,24 +108,23 @@ bool SslBufferedConnection::inp() {
 
             if ( error == SSL_ERROR_WANT_READ ) {
                 w_state = want_to_read; // we will have to issue again the SSL_write() during the next inp()
-                break;
+                return wait_for_more_inp(); // not useful to try a SSL_read (so we can return immediatly)
             }
 
             if ( error == SSL_ERROR_WANT_WRITE ) {
                 w_state = want_to_write; // we will have to issue again the SSL_write() during the next out()
-                if ( not already_polled_out ) {
-                    already_polled_out = true;
-                    poll_out();
-                }
+                wait_for_more_out();
                 break;
             }
 
-            if ( error == SSL_ERROR_SYSCALL or error == SSL_ERROR_ZERO_RETURN )
-                return true; // wait for the (RD)HUP event
+            if ( error == SSL_ERROR_ZERO_RETURN )
+                return rd_hup_error();
+
+            if ( error == SSL_ERROR_SYSCALL )
+                return hup_error();
 
             // else
-            ssl_err();
-            return false;
+            return ssl_error();
         }
     }
 
@@ -145,32 +141,27 @@ bool SslBufferedConnection::inp() {
                 r_state = want_nothing;
                 if ( stop_the_parsing or parse( buff, buff + ruff ) == false ) {
                     stop_the_parsing = true;
-                    return still_has_something_to_send();
+                    return;
                 }
                 break;
             case SSL_ERROR_WANT_READ:
                 r_state = want_to_read; // wait for the next inp()
-                return true;
+                return wait_for_more_inp();
             case SSL_ERROR_WANT_WRITE:
                 r_state = want_to_write; // wait for the next out()
-                if ( not already_polled_out ) {
-                    already_polled_out = true;
-                    poll_out();
-                }
-                return true;
-            case SSL_ERROR_SYSCALL:
+                return wait_for_more_out();
             case SSL_ERROR_ZERO_RETURN:
-
-                return true; // wait for the (RD)HUP event in the loop
+                return rd_hup_error();
+            case SSL_ERROR_SYSCALL:
+                return hup_error();
             default:
-                ssl_err();
-                return false;
+                return ssl_error();
             }
         }
     }
 }
 
-bool SslBufferedConnection::out() {
+void SslBufferedConnection::out() {
     if ( r_state == want_to_write ) {
         const int size_buff = 2048;
         char buff[ size_buff ];
@@ -182,15 +173,14 @@ bool SslBufferedConnection::out() {
                 r_state = want_nothing;
                 if ( stop_the_parsing or parse( buff, buff + ruff ) == false ) {
                     stop_the_parsing = true;
-                    if ( not still_has_something_to_send() )
-                        return false;
+                    break;
                 }
                 continue;
             }
 
             if ( error == SSL_ERROR_WANT_READ ) {
-                // wait for the next inp()
                 r_state = want_to_read;
+                wait_for_more_inp();
                 break;
             }
 
@@ -198,63 +188,57 @@ bool SslBufferedConnection::out() {
                 // write to fd was not possible
                 // -> we will have to issue again the SSL_read during a next call to out()
                 r_state = want_to_write;
+                wait_for_more_out( false );
                 break;
             }
 
-            if ( error == SSL_ERROR_ZERO_RETURN or error == SSL_ERROR_SYSCALL ) // should fire a (RD)HUP event
-                return true; // wait for the (RD)HUP event in the loop
+            if ( error == SSL_ERROR_ZERO_RETURN ) // should fire a (RD)HUP event
+                return rd_hup_error();
+
+            if ( error == SSL_ERROR_SYSCALL ) // should fire a (RD)HUP event
+                return hup_error();
 
             // else
-            ssl_err();
-            return false;
+            return ssl_error();
         }
     }
 
 
-    if ( w_state == want_to_write ) {
+    if ( w_state == want_to_write or ( w_state == want_nothing and _still_has_something_to_send() ) ) {
         // try to issue again the SSL_write
         while ( true ) {
             // send to wbio
             ST ruff = SSL_write( ssl, data_to_write, size_to_write );
-            int error = SSL_get_error( ssl, ruff );
 
-            if ( error == SSL_ERROR_NONE ) {
+            switch ( SSL_get_error( ssl, ruff ) ) {
+            case SSL_ERROR_NONE:
                 w_state = want_nothing;
                 data_to_write += ruff;
                 size_to_write -= ruff;
                 if ( not size_to_write ) {
                     free( orig_to_write );
                     orig_to_write = 0;
-                    break;
+                    return;
                 }
-                continue;
-            }
-
-            if ( error == SSL_ERROR_WANT_READ ) {
-                // we will have to issue again the SSL_write() during the next inp()
+                break;
+            case SSL_ERROR_WANT_READ:
                 w_state = want_to_read;
-                break;
-            }
-
-            if ( error == SSL_ERROR_WANT_WRITE ) {
-                // we will have to issue again the SSL_write() during the next out()
+                return wait_for_more_inp();
+            case SSL_ERROR_WANT_WRITE:
                 w_state = want_to_write;
-                break;
+                return wait_for_more_out();
+            case SSL_ERROR_ZERO_RETURN:
+                return rd_hup_error();
+            case SSL_ERROR_SYSCALL:
+                return hup_error();
+            default:
+                return ssl_error();
             }
-
-            if ( error == SSL_ERROR_ZERO_RETURN or error == SSL_ERROR_SYSCALL ) // should fire a (RD)HUP event
-                return true; // wait for the (RD)HUP event in the loop
-
-            //
-            ssl_err();
-            return false;
         }
     }
-
-    return true;
 }
 
-void SslBufferedConnection::ssl_err() {
+void SslBufferedConnection::ssl_error() {
     ERR_print_errors_fp( stderr );
     errors |= EF_SSL_error;
     reg_for_deletion();

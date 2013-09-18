@@ -28,8 +28,8 @@ public:
     bool still_has_something_to_send() const; ///< return true if write buffer is not empty
 
 protected:
-    virtual bool inp();
-    virtual bool out();
+    virtual void inp();
+    virtual void out();
 
     // to be redefined
     virtual bool parse( char *beg, char *end ) = 0; ///< return false if we have enough data

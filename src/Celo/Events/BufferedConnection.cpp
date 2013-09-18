@@ -32,7 +32,7 @@ void BufferedConnection::_write( const char *data, ST size, bool end ) {
             if ( real < 0 and ( errno == EAGAIN or errno == EWOULDBLOCK ) )
                 return append( new T( data, size, end ) );
             cl_rem_and_add_err();
-            return err();
+            return hup_error();
         }
 
         size -= real;
@@ -57,7 +57,7 @@ void BufferedConnection::_write( int src, ST offset, ST size, bool end ) {
                 return append( new T( src, offset, size ) );
             cl_rem_and_add_err();
             close( src );
-            return err();
+            return hup_error();
         }
 
         size -= real;
@@ -96,42 +96,35 @@ bool BufferedConnection::still_has_something_to_send() const {
     return prim_rem_out;
 }
 
-bool BufferedConnection::flush() {
+void BufferedConnection::inp() {
+    const int size_buff = 2048;
+    char buff[ size_buff ];
+    while ( true ) {
+        ST ruff = read( fd, buff, size_buff );
+        if ( ruff <= 0 ) {
+            // need a retry or there are more data to come
+            if ( ruff < 0 and ( errno == EAGAIN or errno == EWOULDBLOCK ) )
+                return wait_for_more_inp();
+            return hup_error();
+        }
+
+        // parse
+        if ( not parse( buff, buff + ruff ) )
+            return;
+    }
+}
+
+
+void BufferedConnection::out() {
     while ( prim_rem_out ) {
         if ( not prim_rem_out->write( this ) )
-            return true;
+            return wait_for_more_out( false );
 
         RemOutput *o = prim_rem_out;
         prim_rem_out = prim_rem_out->next;
         delete o;
     }
     last_rem_out = 0;
-    return false;
-}
-
-bool BufferedConnection::inp() {
-    const int size_buff = 2048;
-    char buff[ size_buff ];
-    while ( true ) {
-        ST ruff = read( fd, buff, size_buff );
-        if ( ruff <= 0 ) {
-            // need a retry ?
-            if ( ruff < 0 and ( errno == EAGAIN or errno == EWOULDBLOCK ) )
-                return true;
-            err();
-            return false;
-        }
-
-        // parse
-        if ( not parse( buff, buff + ruff ) )
-            return false;
-    }
-}
-
-
-bool BufferedConnection::out() {
-    flush();
-    return true;
 }
 
 void BufferedConnection::cl_rem_and_add_err() {
@@ -150,10 +143,12 @@ void BufferedConnection::append( RemOutput *rem_out ) {
         prim_rem_out = rem_out;
         poll_out();
     }
+
+    wait_for_more_out( false );
 }
 
 void BufferedConnection::cl_rem() {
-    while( prim_rem_out ) {
+    while ( prim_rem_out ) {
         RemOutput *o = prim_rem_out;
         prim_rem_out = prim_rem_out->next;
         delete o;

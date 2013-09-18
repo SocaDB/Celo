@@ -23,12 +23,10 @@ public:
 
     virtual void write_fdd( int fd, ST off, ST len );
 
-    virtual bool still_has_something_to_send() const; ///< return true if write buffer is not empty
-
 protected:
     virtual void inp();
     virtual void out();
-    virtual void ssl_err();
+    virtual void ssl_error();
 
     // to be redefined
     virtual bool parse( char *beg, char *end ) = 0; ///< return false if we have enough data
@@ -42,10 +40,11 @@ private:
 
     enum {
         EF_SSL_error = _last_Event_EF * 2
-    }
+    };
 
     void _write_ssl( const char *data, ST size, bool end );
     void _append_to_data_to_write( const char *data, ST size );
+    bool _still_has_something_to_send() const; ///< return true if write buffer is not empty
 
     SSL  *ssl;
     State r_state;

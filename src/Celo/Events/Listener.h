@@ -35,7 +35,7 @@ public:
     Listener( VtableOnly );
 
 protected:
-    virtual bool inp();
+    virtual void inp();
     virtual bool connection( int fd ) = 0; ///< called after an accept
 };
 

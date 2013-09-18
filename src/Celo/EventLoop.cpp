@@ -72,7 +72,7 @@ int EventLoop::run() {
 
             if ( events[ n ].events & EPOLLOUT ) { // ready for output (after a EAGAIN)
                 rq->waiting &= ~Events::Event::WF_more_out;
-                rq->state.waiting_for_more_out = rq->out();
+                rq->out();
             }
 
             if ( events[ n ].events & EPOLLRDHUP ) { // end of the connection (gracefully closed by peer)
@@ -99,7 +99,7 @@ int EventLoop::run() {
         if ( Events::Event *rq = last_ev_to_del ) {
             while ( true ) {
                 Events::Event *oq = rq;
-                rq = rq->next_in_deletion_list;
+                rq = rq->next_ev_to_del;
                 delete oq;
                 if ( rq == oq )
                     break;
@@ -142,8 +142,6 @@ EventLoop &EventLoop::operator>>( Events::Event *ev_obj ) {
 }
 
 void EventLoop::poll_out_obj( Events::Event *ev_obj ) {
-    ev_obj->wait_for_out = true;
-
     epoll_event ev;
     ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLOUT;
     ev.data.u64 = 0; // for valgrind on 32 bits machines

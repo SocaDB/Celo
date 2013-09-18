@@ -48,6 +48,8 @@ public:
     void poll_out_obj( Events::Event *ev_obj ); ///< look for ev_obj availability for output
 
 protected:
+    friend class Events::Event;
+
     Events::Event *last_ev_to_del; ///<
     int            event_fd; ///< for epoll
     int            ret;

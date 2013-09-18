@@ -18,42 +18,44 @@
 */
 
 
-#include <Celo/BasicHttpRequest_FileServer.h>
-#include <Celo/StringHelp.h>
+#include <Celo/Events/BufferedConnection.h>
+#include <Celo/Events/Listener.h>
+#include <Celo/Util/StringHelp.h>
 #include <Celo/EventLoop.h>
-#include <Celo/Listener.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 
-struct MyHttpRequest : EventObj_WO {
-    MyHttpRequest( int fd ) : EventObj_WO( fd ) {
+struct MyHttpRequest : Celo::Events::BufferedConnection {
+    MyHttpRequest( int fd ) : Celo::Events::BufferedConnection( fd ) {
     }
 
-    virtual int parse( char *beg, char *end ) {
+    virtual bool parse( char *beg, char *end ) {
         write( 0, beg, end - beg );
         std::cout.write( beg, end - beg );
-        return OK;
-        //        if ( strcmp( url.data, "/exit" ) == 0 )
-        //            return ev_loop->stop();
-        //        BasicHttpRequest_FileServer::req_GET();
+
+        this->write_cst( "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nTest" );
+
+        return false;
     }
 };
 
-struct MyListener : Listener {
-    MyListener( const char *port ) : Listener( port ) {}
+struct MyListener : Celo::Events::Listener {
+    MyListener( const char *port ) : Celo::Events::Listener( port ) {}
 
-    virtual void rdy() {
-        system( "google-chrome http://localhost:8899 &" );
-    }
+    //virtual void rdy() {
+    //    system( "google-chrome http://localhost:8899 &" );
+    //}
 
-    virtual EventObj *event_obj_factory( int fd ) {
-        return new MyHttpRequest( fd );
+    virtual bool connection( int fd ) {
+        *ev_loop << new MyHttpRequest( fd );
+        return true;
     }
 };
 
 int main() {
-    EventLoop el;
+    Celo::EventLoop el;
 
     MyListener l( "8899" );
     el << &l;

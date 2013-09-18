@@ -31,12 +31,13 @@ Listener::Listener( const char *port ) : Event( listening_socket( port ) ) {
 Listener::Listener( VtableOnly vo ) : Event( vo ) {
 }
 
-bool Listener::inp() {
+void Listener::inp() {
     while ( true ) {
         int nd = accepting_socket( fd );
         if ( nd == -1 )
-            return true; // continue to listen
-        connection( nd );
+            return wait_for_more_inp();
+        if ( not connection( nd ) )
+            return;
     }
 }
 
