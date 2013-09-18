@@ -72,15 +72,21 @@ void SslBufferedConnection::_write_ssl( const char *data, ST size, bool end ) {
             break;
         case SSL_ERROR_WANT_READ:
             w_state = want_to_read; // we will have to issue again the SSL_write() during the next inp()
+            state.waiting_for_more_inp = true;
             return _append_to_data_to_write( data, size );
         case SSL_ERROR_WANT_WRITE:
             w_state = want_to_write; // we will have to issue again the SSL_write() during the next out()
+            state.waiting_for_more_inp = true;
+            if ( not already_polled_out ) {
+                already_polled_out = true;
+                poll_out();
+            }
             return _append_to_data_to_write( data, size );
+        case SSL_ERROR_SYSCALL:
         case SSL_ERROR_ZERO_RETURN:
-            return hup(); // closed connection
+            return reg_for_deletion();
         default:
-            ERR_print_errors_fp( stderr );
-            return err();
+            return ssl_err();
         }
     }
 }
@@ -117,14 +123,11 @@ bool SslBufferedConnection::inp() {
                 break;
             }
 
-            if ( error == SSL_ERROR_ZERO_RETURN ) {
-                hup();
-                return false;
-            }
+            if ( error == SSL_ERROR_SYSCALL or error == SSL_ERROR_ZERO_RETURN )
+                return true; // wait for the (RD)HUP event
 
             // else
-            ERR_print_errors_fp( stderr );
-            err();
+            ssl_err();
             return false;
         }
     }
@@ -157,11 +160,10 @@ bool SslBufferedConnection::inp() {
                 return true;
             case SSL_ERROR_SYSCALL:
             case SSL_ERROR_ZERO_RETURN:
-                hup(); // closed connection
-                return false;
+
+                return true; // wait for the (RD)HUP event in the loop
             default:
-                ERR_print_errors_fp( stderr );
-                err();
+                ssl_err();
                 return false;
             }
         }
@@ -199,15 +201,11 @@ bool SslBufferedConnection::out() {
                 break;
             }
 
-            if ( error == SSL_ERROR_ZERO_RETURN ) {
-                // closed connection
-                hup();
-                return false;
-            }
+            if ( error == SSL_ERROR_ZERO_RETURN or error == SSL_ERROR_SYSCALL ) // should fire a (RD)HUP event
+                return true; // wait for the (RD)HUP event in the loop
 
             // else
-            ERR_print_errors_fp( stderr );
-            err();
+            ssl_err();
             return false;
         }
     }
@@ -244,20 +242,22 @@ bool SslBufferedConnection::out() {
                 break;
             }
 
-            if ( error == SSL_ERROR_ZERO_RETURN ) {
-                // closed connection
-                hup();
-                return false;
-            }
+            if ( error == SSL_ERROR_ZERO_RETURN or error == SSL_ERROR_SYSCALL ) // should fire a (RD)HUP event
+                return true; // wait for the (RD)HUP event in the loop
 
             //
-            ERR_print_errors_fp( stderr );
-            err();
+            ssl_err();
             return false;
         }
     }
 
     return true;
+}
+
+void SslBufferedConnection::ssl_err() {
+    ERR_print_errors_fp( stderr );
+    errors |= EF_SSL_error;
+    reg_for_deletion();
 }
 
 void SslBufferedConnection::_append_to_data_to_write( const char *data, ST size ) {

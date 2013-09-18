@@ -36,6 +36,7 @@ EventLoop::EventLoop() {
         perror( "epoll_create1" );
 
     // default values
+    last_ev_to_del = 0;
     ret = 0;
 }
 
@@ -63,29 +64,47 @@ int EventLoop::run() {
         // for each event
         for( int n = 0; n < nfds; ++n ) {
             Events::Event *rq = reinterpret_cast<Events::Event *>( events[ n ].data.ptr );
-            bool keep_obj = false;
 
-            if ( events[ n ].events & EPOLLIN ) // there are some input data
-                keep_obj |= rq->inp();
+            if ( events[ n ].events & EPOLLIN ) { // there are some input data
+                rq->waiting &= ~Events::Event::WF_more_inp;
+                rq->inp();
+            }
 
-            if ( events[ n ].events & EPOLLOUT ) // ready for output (after a EAGAIN)
-                keep_obj |= rq->out();
+            if ( events[ n ].events & EPOLLOUT ) { // ready for output (after a EAGAIN)
+                rq->waiting &= ~Events::Event::WF_more_out;
+                rq->state.waiting_for_more_out = rq->out();
+            }
+
+            if ( events[ n ].events & EPOLLRDHUP ) { // end of the connection (gracefully closed by peer)
+                rq->errors |= Events::Event::EF_rd_hup_error;
+                rq->reg_for_deletion();
+            }
 
             if ( events[ n ].events & EPOLLHUP ) { // end of the connection
-                rq->hup();
-                keep_obj = false;
+                rq->errors |= Events::Event::EF_hup_error;
+                rq->reg_for_deletion();
             }
 
             if ( events[ n ].events & EPOLLERR ) { // error
-                rq->err();
-                keep_obj = false;
+                rq->errors |= Events::Event::EF_generic_error;
+                rq->reg_for_deletion();
             }
 
-            if ( not keep_obj )
-                delete rq;
+            // add to deletion list if nothing more to do
+            if ( rq->waiting == 0 )
+                rq->reg_for_deletion();
+        }
 
-            if ( not cnt )
-                break;
+        // deletions (due to closed connections, SSL errors, ...)
+        if ( Events::Event *rq = last_ev_to_del ) {
+            while ( true ) {
+                Events::Event *oq = rq;
+                rq = rq->next_in_deletion_list;
+                delete oq;
+                if ( rq == oq )
+                    break;
+            }
+            last_ev_to_del = 0;
         }
     } while ( cnt );
 
@@ -106,9 +125,7 @@ EventLoop &EventLoop::operator<<( Events::Event *ev_obj ) {
     ev_obj->ev_loop = this;
 
     epoll_event ev;
-    ev.events =
-            EPOLLIN | //
-            EPOLLET; // trigger
+    ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET; // ET -> trigger
     ev.data.u64 = 0; // for valgrind on 32 bits machines
     ev.data.ptr = ev_obj;
     if ( epoll_ctl( event_fd, EPOLL_CTL_ADD, ev_obj->fd, &ev ) == -1 )
@@ -125,8 +142,10 @@ EventLoop &EventLoop::operator>>( Events::Event *ev_obj ) {
 }
 
 void EventLoop::poll_out_obj( Events::Event *ev_obj ) {
+    ev_obj->wait_for_out = true;
+
     epoll_event ev;
-    ev.events = EPOLLIN | EPOLLET | EPOLLOUT;
+    ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLOUT;
     ev.data.u64 = 0; // for valgrind on 32 bits machines
     ev.data.ptr = ev_obj;
     if ( epoll_ctl( event_fd, EPOLL_CTL_MOD, ev_obj->fd, &ev ) == -1 )
