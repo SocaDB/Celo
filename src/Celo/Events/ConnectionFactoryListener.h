@@ -22,6 +22,7 @@
 #define Celo_Events_ConnectionFactoryListener_H
 
 #include "../Util/VoidStruct.h"
+#include "../EventLoop.h"
 #include "Listener.h"
 
 namespace Celo {

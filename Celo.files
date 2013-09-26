@@ -66,3 +66,5 @@ src/Celo/Util/StringBlk.cpp
 tests/test_Observer.cpp
 tests/test_Https.cpp
 tests/test_Http.cpp
+src/Celo/Util/UrlEncodeAndDecode.h
+src/Celo/Util/UrlEncodeAndDecode.cpp

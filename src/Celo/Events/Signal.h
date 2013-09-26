@@ -34,7 +34,7 @@ public:
 
 protected:
     virtual void inp();
-    virtual bool signal( int s ) = 0; ///< return true to continue watching for signal
+    virtual bool signal( int s ) = 0; ///< return true to continue watching for signal. It you want to stop the program call ev_loop->stop()
 };
 
 } // namespace Events

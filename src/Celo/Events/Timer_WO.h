@@ -18,8 +18,8 @@
 */
 
 
-#ifndef Celo_Events_Timer_H
-#define Celo_Events_Timer_H
+#ifndef Celo_Events_Timer_WO_H
+#define Celo_Events_Timer_WO_H
 
 #include "../Util/VoidStruct.h"
 #include "Timer.h"
@@ -53,4 +53,4 @@ protected:
 } // namespace Events
 } // namespace Celo
 
-#endif // Celo_Events_Timer_H
+#endif // Celo_Events_Timer_WO_H
