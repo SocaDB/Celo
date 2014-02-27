@@ -51,7 +51,6 @@ struct MyObserver {
     template<class EO>
     bool parse( EO *eo, char *beg, char *end ) {
         std::cout << "Incoming Data: (data attribute=" << eo->data << ")\n";
-        std::cout;
         std::cout.write( beg, end - beg );
 
         eo->write_cst( "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nHello" );
