@@ -1,7 +1,9 @@
 #include "SslCtx.h"
 
+#ifdef METIL_COMP_DIRECTIVE
 #pragma lib_name crypto
 #pragma lib_name ssl
+#endif // METIL_COMP_DIRECTIVE
 
 namespace Celo {
 
@@ -44,6 +46,19 @@ SslCtx::SslCtx( const char *cert_file, const char *key_file ) {
         fprintf( stderr, "Private key does not match the public certificate\n" );
         abort();
     }
+}
+
+SslCtx::SslCtx() {
+    init_ssl_if_necessary();
+
+    // server ctx
+    const SSL_METHOD *method = SSLv23_client_method(); // create new server-method instance
+    ctx = SSL_CTX_new( method ); // create new context from method
+    if ( not ctx ) {
+        ERR_print_errors_fp( stderr );
+        abort();
+    }
+
 }
 
 } // namespace Celo

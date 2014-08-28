@@ -34,18 +34,24 @@ public:
     EventLoop();
     ~EventLoop();
 
-    // loop
-    int run(); ///< Infinite loop, until stop() is called. return err code < 0 if pb. return ret_val (sent by this->stop) if ok.
-    void stop( int ret_val = 0 ); ///< may be called during a callback to please the infinite loop to gracefully stop after that.
+    /// Infinite loop, until stop() is called. return err code < 0 if pb. return ret_val (the value that is sent by this->stop()) if ok.
+    int run();
 
-    // additions of event objects
-    EventLoop &operator<<( Events::Event *ev_obj ); ///< add a event. Thread safe
+    /// Procedure to be called to gracefully exit from run().
+    /// May be called e.g. during a callback
+    void stop( int ret_val = 0 );
 
-    // suppressions of event objects
+    /// add a to be watched event object.
+    /// ev_obj may be deleted inside the loop if it says that everything is done with it.
+    /// thread safe.
+    EventLoop &operator<<( Events::Event *ev_obj ); ///< add an event. Thread safe
+
+    /// suppressions of event objects
+    /// NOT thread safe
     EventLoop &operator>>( Events::Event *ev_obj ); ///< not thread safe
 
-    // modifications
-    void poll_out_obj( Events::Event *ev_obj ); ///< look for ev_obj availability for output
+    /// look for ev_obj availability for output
+    void poll_out_obj( Events::Event *ev_obj );
 
 protected:
     friend class Events::Event;

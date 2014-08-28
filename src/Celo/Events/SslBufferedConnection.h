@@ -8,10 +8,12 @@ namespace Celo {
 namespace Events {
 
 /**
+  SSL_CTX can be constructed using SslCtx e.g.
+    ssl_ctx( "mycert.pem", "mycert.pem" );
 */
 class SslBufferedConnection : public Event {
 public:
-    SslBufferedConnection( SSL_CTX *ssl_ctx, int fd );
+    SslBufferedConnection( SSL_CTX *ssl_ctx, int fd, bool server = true );
     SslBufferedConnection( VtableOnly );
     ~SslBufferedConnection();
 

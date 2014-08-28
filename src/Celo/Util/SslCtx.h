@@ -11,7 +11,8 @@ namespace Celo {
 */
 class SslCtx {
 public:
-    SslCtx( const char *cert_file, const char *key_file );
+    SslCtx( const char *cert_file, const char *key_file ); ///< for a server connection
+    SslCtx(); ///< for a client connection
 
     SSL_CTX *ctx;
 };

@@ -25,6 +25,7 @@ namespace Celo {
 
 int accepting_socket( int listen_fd, int non_blocking = true ); ///< return socket after accept
 int listening_socket( const char *port ); ///< return a binded listening socket on port $port
+int client_socket( const char *ip, const char *port ); ///< return a binded listening socket on port $port
 
 }
 

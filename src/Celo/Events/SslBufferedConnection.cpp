@@ -8,10 +8,39 @@
 namespace Celo {
 namespace Events {
 
-SslBufferedConnection::SslBufferedConnection( SSL_CTX *ssl_ctx, int fd ) : Event( fd ) {
+void ShowCerts( SSL* ssl ) {   X509 *cert;
+    char *line;
+
+    cert = SSL_get_peer_certificate(ssl); /* get the server's certificate */
+    if ( cert != NULL )
+    {
+        printf("Server certificates:\n");
+        line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
+        printf("Subject: %s\n", line);
+        free(line);       /* free the malloc'ed string */
+        line = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
+        printf("Issuer: %s\n", line);
+        free(line);       /* free the malloc'ed string */
+        X509_free(cert);     /* free the malloc'ed certificate copy */
+    }
+    else
+        printf("No certificates.\n");
+}
+
+SslBufferedConnection::SslBufferedConnection( SSL_CTX *ssl_ctx, int fd, bool server ) : Event( fd ) {
     ssl = SSL_new( ssl_ctx );
     SSL_set_fd( ssl, fd );
-    SSL_set_accept_state( ssl ); // handshake will be done by SSL_write and SSL_read
+    if ( server ) {
+        SSL_set_accept_state( ssl ); // handshake will be done by SSL_write and SSL_read
+    } else {
+        SSL_set_connect_state( ssl ); // handshake will be done by SSL_write and SSL_read
+//        if ( SSL_connect( ssl ) == FAIL ) {
+//            ERR_print_errors_fp( stderr );
+//            this->fd = -1;
+//            return;
+//        }
+    }
+
     SSL_set_mode( ssl, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER );
 
     orig_to_write      = 0;
@@ -89,6 +118,8 @@ void SslBufferedConnection::_write_ssl( const char *data, ST size, bool end ) {
 }
 
 void SslBufferedConnection::inp() {
+    ShowCerts( ssl );
+
     // need to issue again a SSL_write ?
     if ( w_state == want_to_read ) {
         while ( size_to_write ) {
