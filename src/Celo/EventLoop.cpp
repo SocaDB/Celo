@@ -18,7 +18,6 @@
 */
 
 
-#include "Util/StringHelp.h"
 #include "Events/Event.h"
 #include "EventLoop.h"
 

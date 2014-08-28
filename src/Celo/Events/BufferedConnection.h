@@ -1,6 +1,7 @@
 #ifndef Celo_Events_BufferedConnection_H
 #define Celo_Events_BufferedConnection_H
 
+#include "../System/Buffer.h"
 #include "Event.h"
 
 namespace Celo {
@@ -30,6 +31,8 @@ public:
 
     virtual void write_fdd( int fd, ST off, ST len ); ///< write data from file described by fd (its file descriptor)
 
+    virtual void write_buf( Ptr<Buffer> &buf, SI32 off = 0, bool end = false ); ///< write data from buf. BEWARE, buf will be set to 0 (data is owned by this)
+
     void wait_for_another_write(); ///< append RemOutputWait to the list of objects to be sent that will say "done" if followed by something to send
 
     bool still_has_something_to_send() const; ///< return true if write buffer is not empty
@@ -39,7 +42,7 @@ protected:
     virtual void out();
 
     // to be redefined
-    virtual bool parse( char *beg, char *end ) = 0; ///< return false if we have enough data
+    virtual bool parse( Ptr<Buffer> buff ) = 0; ///< return false if we have enough data
 
     template<class T> void _write( const char *data, ST size, bool end );
     template<class T> void _write( int fd, ST off, ST size, bool end );

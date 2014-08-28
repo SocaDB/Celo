@@ -18,7 +18,7 @@
 */
 
 
-#include <Celo/Util/StringHelp.h>
+#include <Celo/System/Stream.h>
 #include <Celo/EventLoop.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -49,9 +49,9 @@ struct MyObserver {
     }
 
     template<class EO>
-    bool parse( EO *eo, char *beg, char *end ) {
+    bool parse( EO *eo, Celo::Ptr<Celo::Buffer> buffer ) {
         std::cout << "Incoming Data: (data attribute=" << eo->data << ")\n";
-        std::cout.write( beg, end - beg );
+        std::cout.write( (const char *)buffer->data, buffer->used );
 
         eo->write_cst( "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nHello" );
         return false;
@@ -73,6 +73,8 @@ int main() {
 
     // for a test (not really a convenient example)
     el << new Events::ConnectionFactoryListener<Events::BufferedConnection_WO<MyObserver,int>,MyObserver *>( "8889", &mo );
+
+    std::cout << "Listening port 8888" << std::endl;
 
     return el.run();
 }

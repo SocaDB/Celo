@@ -2,8 +2,6 @@
 #include "Internal/RemOutput.h"
 #include <string.h>
 
-#include "../Util/StringHelp.h"
-
 namespace Celo {
 namespace Events {
 
@@ -88,6 +86,40 @@ void BufferedConnection::write_fdd( int fd, ST off, ST len ) {
     _write<RemOutputFile>( fd, off, len, true );
 }
 
+void BufferedConnection::write_buf( Ptr<Buffer> &buf, SI32 off, bool end ) {
+    while ( off >= buf->used ) {
+        off -= buf->used;
+        buf = buf->next;
+        if ( not buf )
+            return;
+    }
+
+    if ( still_has_something_to_send() )
+        return append( new RemOutputBuffer( buf, off, end ) );
+
+    while ( true ) {
+        ST real = ::send( fd, buf->data + off, buf->used - off, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
+        if ( real <= 0 ) { // error ?
+            if ( real < 0 and ( errno == EAGAIN or errno == EWOULDBLOCK ) )
+                return append( new RemOutputBuffer( buf, off, end ) );
+            cl_rem_and_add_err();
+            return hup_error();
+        }
+
+        off += real;
+        if ( off >= buf->used ) {
+            while ( true ) {
+                buf = buf->next;
+                if ( not buf )
+                    return;
+                if ( buf->used )
+                    break;
+            }
+            off = 0;
+        }
+    }
+}
+
 void BufferedConnection::wait_for_another_write() {
     append( new RemOutputWait );
 }
@@ -97,19 +129,18 @@ bool BufferedConnection::still_has_something_to_send() const {
 }
 
 void BufferedConnection::inp() {
-    const int size_buff = 2048;
-    char buff[ size_buff ];
+    Ptr<Buffer> buff = new Buffer;
     while ( true ) {
-        ST ruff = read( fd, buff, size_buff );
-        if ( ruff <= 0 ) {
+        buff->used = read( fd, buff->data,  buff->item_size );
+        if ( buff->used <= 0 ) {
             // need a retry or there are more data to come
-            if ( ruff < 0 and ( errno == EAGAIN or errno == EWOULDBLOCK ) )
+            if ( buff->used < 0 and ( errno == EAGAIN or errno == EWOULDBLOCK ) )
                 return wait_for_more_inp();
             return hup_error();
         }
 
         // parse
-        if ( not parse( buff, buff + ruff ) )
+        if ( not parse( buff ) )
             return;
     }
 }

@@ -33,9 +33,6 @@ public:
 protected:
     virtual bool inp();
 
-    // to be redefined
-    virtual bool parse( const char *beg, const char *end ) = 0; ///< return false if we have enough data
-
     Filter *inp_filter;
     Filter *out_filter;
 

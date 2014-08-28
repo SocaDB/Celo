@@ -23,7 +23,13 @@
 
 #include <stdint.h>
 
+#ifdef METIL_COMP_DIRECTIVE
+#pragma cpp_flag -std=c++11
+#endif
+
 namespace Celo {
+
+typedef bool        Bool;
 
 typedef int8_t      SI8 ;
 typedef int16_t     SI16;
@@ -34,6 +40,10 @@ typedef uint8_t     PI8 ;
 typedef uint16_t    PI16;
 typedef uint32_t    PI32;
 typedef uint64_t    PI64;
+
+typedef float       FP32;
+typedef double      FP64;
+typedef long double FP80;
 
 // ---------------------- size types ----------------------
 

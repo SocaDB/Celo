@@ -31,7 +31,7 @@ protected:
     virtual void ssl_error();
 
     // to be redefined
-    virtual bool parse( char *beg, char *end ) = 0; ///< return false if we have enough data
+    virtual bool parse( Ptr<Buffer> buffer ) = 0; ///< return false if we have enough data
 
 private:
     typedef enum {

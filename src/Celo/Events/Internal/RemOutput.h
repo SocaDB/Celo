@@ -2,7 +2,6 @@
 #define Celo_Events_Internal_RemOutput_H
 
 #include "../BufferedConnection.h"
-#include "../../Util/StringHelp.h"
 
 #include <sys/sendfile.h>
 #include <sys/socket.h>
@@ -99,6 +98,44 @@ struct RemOutputFile : public RemOutput {
     off_t off;
     ST    size;
 };
+
+
+/**
+*/
+struct RemOutputBuffer : public RemOutput {
+    RemOutputBuffer( Ptr<Buffer> buf, SI32 off, bool end ) : buf( buf ), off( off ), end( end ) {
+    }
+
+    virtual int write( BufferedConnection *obj ) {
+        while ( true ) {
+            ST real = ::send( obj->fd, buf->data + off, buf->used - off, end ? MSG_NOSIGNAL : MSG_NOSIGNAL | MSG_MORE );
+            if ( real <= 0 ) { // error ?
+                if ( real == 0 )
+                    return CLOSED;
+                if ( errno == EAGAIN or errno == EWOULDBLOCK )
+                    return WAIT;
+                return ERROR;
+            }
+
+            off += real;
+            if ( off >= buf->used ) {
+                while ( true ) {
+                    buf = buf->next;
+                    if ( not buf )
+                        return DONE;
+                    if ( buf->used )
+                        break;
+                }
+                off = 0;
+            }
+        }
+    }
+
+    Ptr<Buffer> buf;
+    SI32        off; ///< offset in data->data
+    bool        end; ///< false to send using MSG_MORE
+};
+
 
 /**
   return DONE if followed by something to send

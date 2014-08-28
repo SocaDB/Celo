@@ -1,7 +1,7 @@
 #ifndef Celo_Filters_Filter_H
 #define Celo_Filters_Filter_H
 
-#include "../TypeConfig.h"
+#include "../Sys/TypeConfig.h"
 
 namespace Celo {
 namespace Filters {

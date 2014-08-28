@@ -21,7 +21,7 @@
 #ifndef Celo_Events_ConnectionFactoryListener_H
 #define Celo_Events_ConnectionFactoryListener_H
 
-#include "../Util/VoidStruct.h"
+#include "../System/VoidStruct.h"
 #include "../EventLoop.h"
 #include "Listener.h"
 

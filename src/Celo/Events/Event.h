@@ -21,7 +21,7 @@
 #ifndef Celo_Events_Event_H
 #define Celo_Events_Event_H
 
-#include "../TypeConfig.h"
+#include "../System/TypeConfig.h"
 
 namespace Celo {
 class EventLoop;
@@ -41,7 +41,8 @@ public:
     void poll_out(); ///< add output polling for *this in ev_loop
 
     // public attributes
-    int  fd;      ///< file descriptor
+    int        fd;      ///< file descriptor
+    EventLoop *ev_loop; ///< the event_loop where this is registered
 
 protected:
     enum {
@@ -74,7 +75,6 @@ protected:
 
     // attributes
     Event     *next_ev_to_del;
-    EventLoop *ev_loop; ///< the event_loop where this is registered
     int        waiting; ///< combinations of WF_...
     int        errors;  ///< combinations of EF_...
 };

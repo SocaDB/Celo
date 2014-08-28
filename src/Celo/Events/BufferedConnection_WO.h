@@ -2,7 +2,7 @@
 #define Celo_Events_BufferedConnection_WO_H
 
 #include "BufferedConnection.h"
-#include "../Util/VoidStruct.h"
+#include "../System/VoidStruct.h"
 
 namespace Celo {
 namespace Events {
@@ -22,8 +22,8 @@ public:
             delete obj;
     }
 
-    virtual bool parse( char *beg, char *end ) {
-        return obj->parse( this, beg, end );
+    virtual bool parse( Ptr<Buffer> buff ) {
+        return obj->parse( this, buff );
     }
 
     AdditionalData data;

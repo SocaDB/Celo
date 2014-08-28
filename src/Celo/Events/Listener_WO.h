@@ -21,7 +21,7 @@
 #ifndef Celo_Events_Listener_WO_H
 #define Celo_Events_Listener_WO_H
 
-#include "../Util/VoidStruct.h"
+#include "../System/VoidStruct.h"
 #include "Listener.h"
 
 namespace Celo {

@@ -21,7 +21,7 @@
 #ifndef Celo_Events_Signal_WO_H
 #define Celo_Events_Signal_WO_H
 
-#include "../Util/VoidStruct.h"
+#include "../System/VoidStruct.h"
 #include "Signal.h"
 
 namespace Celo {
