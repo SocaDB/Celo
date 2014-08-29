@@ -46,6 +46,23 @@ public:
     PI8         data[ item_size ];
 };
 
+/// update buffer and off_buffer to skip msg_length
+template<class S>
+void skip_some( Ptr<Buffer> &buffer, int &off_buffer, S msg_length ) {
+    while ( true ) {
+        if ( not buffer )
+            return;
+        if ( msg_length <= buffer->used - off_buffer ) {
+            off_buffer += msg_length;
+            return;
+        }
+        msg_length -= buffer->used - off_buffer;
+        buffer = buffer->next;
+        off_buffer = 0;
+    }
+}
+
+
 }
 
 #endif // BUFFER_H

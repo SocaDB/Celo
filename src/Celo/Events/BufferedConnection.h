@@ -3,6 +3,7 @@
 
 #include "../System/Buffer.h"
 #include "Event.h"
+#include <stdlib.h> // for off_t
 
 namespace Celo {
 namespace Events {
@@ -19,6 +20,8 @@ namespace Events {
 */
 class BufferedConnection : public Event {
 public:
+    typedef long long ST;
+
     BufferedConnection( VtableOnly ); ///< a constructor that does not assign any attribute (else than the vtable). Permits to do a new( ptr ) T to change _only_ the vtable (underlying type)
     BufferedConnection( int fd );
     ~BufferedConnection();
@@ -31,7 +34,7 @@ public:
 
     virtual void write_fdd( int fd, ST off, ST len ); ///< write data from file described by fd (its file descriptor)
 
-    virtual void write_buf( Ptr<Buffer> &buf, SI32 off = 0, bool end = false ); ///< write data from buf. BEWARE, buf will be set to 0 (data is owned by this)
+    virtual void write_buf( Ptr<Buffer> &buf, int off = 0, bool end = false ); ///< write data from buf. BEWARE, buf will be set to 0 (data is owned by this)
 
     void wait_for_another_write(); ///< append RemOutputWait to the list of objects to be sent that will say "done" if followed by something to send
 
@@ -45,11 +48,10 @@ protected:
     virtual bool parse( Ptr<Buffer> buff ) = 0; ///< return false if we have enough data
 
     template<class T> void _write( const char *data, ST size, bool end );
-    template<class T> void _write( int fd, ST off, ST size, bool end );
+    template<class T> void _write( int fd, off_t off, ST size, bool end );
     void cl_rem_and_add_err(); ///< call cl_rem and append( RemOutputError )
     void append( struct RemOutput *rem_out );
     void cl_rem(); ///< delete list of rem_out
-    bool flush(); ///< return true if effectively flushed
 
     // attributes
     struct RemOutput *prim_rem_out;

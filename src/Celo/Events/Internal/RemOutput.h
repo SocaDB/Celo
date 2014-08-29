@@ -16,6 +16,7 @@ namespace Events {
 /**
 */
 struct RemOutput {
+    typedef long long ST;
     enum { CLOSED = -2, ERROR = -1, WAIT = 0, DONE = 1 };
     virtual int write( BufferedConnection *obj ) = 0; ///< return CLOSED, ERROR, WAIT or DONE
     virtual ~RemOutput() {}
@@ -103,7 +104,7 @@ struct RemOutputFile : public RemOutput {
 /**
 */
 struct RemOutputBuffer : public RemOutput {
-    RemOutputBuffer( Ptr<Buffer> buf, SI32 off, bool end ) : buf( buf ), off( off ), end( end ) {
+    RemOutputBuffer( Ptr<Buffer> buf, int off, bool end ) : buf( buf ), off( off ), end( end ) {
     }
 
     virtual int write( BufferedConnection *obj ) {
@@ -132,7 +133,7 @@ struct RemOutputBuffer : public RemOutput {
     }
 
     Ptr<Buffer> buf;
-    SI32        off; ///< offset in data->data
+    int         off; ///< offset in data->data
     bool        end; ///< false to send using MSG_MORE
 };
 

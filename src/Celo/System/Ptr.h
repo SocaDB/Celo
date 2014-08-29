@@ -1,5 +1,5 @@
-#ifndef PTR_H
-#define PTR_H
+#ifndef CeloPTR_H
+#define CeloPTR_H
 
 namespace Celo {
 
@@ -178,4 +178,4 @@ struct ConstPtr {
 
 }
 
-#endif // PTR_H
+#endif // CeloPTR_H

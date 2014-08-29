@@ -21,8 +21,6 @@
 #ifndef Celo_Events_Event_H
 #define Celo_Events_Event_H
 
-#include "../System/TypeConfig.h"
-
 namespace Celo {
 class EventLoop;
 namespace Events {
