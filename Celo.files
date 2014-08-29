@@ -13,12 +13,8 @@ src/Celo/Util/SslCtx.h
 src/Celo/Util/Socket.h
 src/Celo/Util/FileDescriptor.h
 src/Celo/System/Buffer.h
-src/Celo/System/Stream.h
 src/Celo/System/Ptr.h
-src/Celo/System/TensorOrder.h
 src/Celo/System/VoidStruct.h
-src/Celo/System/TypeConfig.h
-src/Celo/System/EnableIf.h
 src/Celo/EventLoop.h
 src/Celo/Events/Event.h
 src/Celo/Events/Signal.h

@@ -6,15 +6,7 @@ namespace Celo {
 Buffer::Buffer() : used( 0 ) {
 }
 
-void Buffer::write_to_stream( Stream &os ) const {
-    for( int i = 0; i < size(); ++i ) {
-        static const char *c = "0123456789abcdef";
-        os << ( i ? " " : "" ) << c[ (*this)[ i ] / 16 ] << c[ (*this)[ i ] % 16 ];
-    }
-    // os << "\n";
-}
-
-const PI8 &Buffer::operator[]( ST off ) const {
+const Buffer::PI8 &Buffer::operator[]( SI64 off ) const {
     for( const Buffer *b = this; ; b = b->next.ptr() ) {
         if ( off < b->used )
             return b->data[ off ];
@@ -22,7 +14,7 @@ const PI8 &Buffer::operator[]( ST off ) const {
     }
 }
 
-PI8 &Buffer::operator[]( ST off ) {
+Buffer::PI8 &Buffer::operator[]( SI64 off ) {
     for( Buffer *b = this; ; b = b->next.ptr() ) {
         if ( off < b->used )
             return b->data[ off ];
@@ -30,16 +22,16 @@ PI8 &Buffer::operator[]( ST off ) {
     }
 }
 
-const PI8 *Buffer::ptr( ST off ) const {
+const Buffer::PI8 *Buffer::ptr( SI64 off ) const {
     return &operator[]( off );
 }
 
-PI8 *Buffer::ptr( ST off ) {
+Buffer::PI8 *Buffer::ptr( SI64 off ) {
     return &operator[]( off );
 }
 
-ST Buffer::size() const {
-    ST res = 0;
+Buffer::SI64 Buffer::size() const {
+    SI64 res = 0;
     for( const Buffer *b = this; b; b = b->next.ptr() )
         res += b->used;
     return res;
@@ -52,7 +44,7 @@ bool Buffer::empty() const {
     return false;
 }
 
-ST Buffer::item_room() const {
+Buffer::SI64 Buffer::item_room() const {
     return item_size - used;
 }
 

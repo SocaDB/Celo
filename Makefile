@@ -1,8 +1,8 @@
-MCP = metil_comp -O3 -g3 --no-sep-libs -Isrc
+MCP = metil_comp -std=c++11 -O3 -g3 --no-sep-libs -Isrc
 PRG = tests/test_Http.cpp
 INSTALL_DIR = `pwd`
 
-all: test_Observer
+all: test_Buffer
 
 cmp: inst_dir ext/Sipe
 	make -C ext/Sipe

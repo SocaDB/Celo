@@ -1,9 +1,6 @@
 #ifndef PTR_H
 #define PTR_H
 
-#include "dcast.h"
-#include "scast.h"
-
 namespace Celo {
 
 /**
@@ -178,26 +175,6 @@ struct ConstPtr {
 
     const T *data;
 };
-
-//template<class T>
-//DCastC<T> dcast( const ConstPtr<T> &p ) {
-//    return p.ptr();
-//}
-
-template<class T>
-DCast<T> dcast( Ptr<T> p ) {
-    return p.ptr();
-}
-
-template<class T>
-SCastC<T> scast( const ConstPtr<T> &p ) {
-    return p.ptr();
-}
-
-template<class T>
-SCast<T> scast( Ptr<T> p ) {
-    return p.ptr();
-}
 
 }
 
