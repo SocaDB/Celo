@@ -129,8 +129,8 @@ bool BufferedConnection::still_has_something_to_send() const {
 }
 
 void BufferedConnection::inp() {
-    Ptr<Buffer> buff = new Buffer;
     while ( true ) {
+        Ptr<Buffer> buff = new Buffer;
         buff->used = read( fd, buff->data,  buff->item_size );
         if ( buff->used <= 0 ) {
             // need a retry or there are more data to come

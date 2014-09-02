@@ -1,5 +1,5 @@
-#ifndef BUFFER_H
-#define BUFFER_H
+#ifndef Celo_BUFFER_H
+#define Celo_BUFFER_H
 
 #include "Ptr.h"
 
@@ -62,7 +62,6 @@ void skip_some( Ptr<Buffer> &buffer, int &off_buffer, S msg_length ) {
     }
 }
 
-
 }
 
-#endif // BUFFER_H
+#endif // Celo_BUFFER_H
