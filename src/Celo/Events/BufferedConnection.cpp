@@ -86,7 +86,7 @@ void BufferedConnection::write_fdd( int fd, ST off, ST len ) {
     _write<RemOutputFile>( fd, off, len, true );
 }
 
-void BufferedConnection::write_buf( Ptr<Buffer> &buf, int off, bool end ) {
+void BufferedConnection::write_buf( Ptr<Buffer> buf, int off, bool end ) {
     while ( off >= buf->used ) {
         off -= buf->used;
         buf = buf->next;
