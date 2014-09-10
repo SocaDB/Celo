@@ -49,13 +49,13 @@ public:
 
     /// update buffer and off_buffer to skip msg_length
     template<class S>
-    static void skip_some( Ptr<Buffer> &buffer, int &off_buffer, S msg_length ) {
+    static bool skip_some( Ptr<Buffer> &buffer, int &off_buffer, S msg_length ) {
         while ( true ) {
             if ( not buffer )
-                return;
+                return msg_length == 0;
             if ( msg_length <= buffer->used - off_buffer ) {
                 off_buffer += msg_length;
-                return;
+                return true;
             }
             msg_length -= buffer->used - off_buffer;
             buffer = buffer->next;
