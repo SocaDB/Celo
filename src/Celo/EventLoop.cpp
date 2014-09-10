@@ -140,6 +140,7 @@ EventLoop &EventLoop::operator>>( Events::Event *ev_obj ) {
     return *this;
 }
 
+
 void EventLoop::poll_out_obj( Events::Event *ev_obj ) {
     epoll_event ev;
     ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLOUT;

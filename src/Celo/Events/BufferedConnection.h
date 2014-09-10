@@ -34,7 +34,7 @@ public:
 
     virtual void write_fdd( int fd, ST off, ST len ); ///< write data from file described by fd (its file descriptor)
 
-    virtual void write_buf( Ptr<Buffer> &buf, int off = 0, bool end = false ); ///< write data from buf. BEWARE, buf will be set to 0 (data is owned by this)
+    virtual void write_buf( Ptr<Buffer> buf, int off = 0, bool end = false ); ///< write data from buf. BEWARE, buf will be set to 0 (data is owned by this)
 
     void wait_for_another_write(); ///< append RemOutputWait to the list of objects to be sent that will say "done" if followed by something to send
 

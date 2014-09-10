@@ -6,7 +6,7 @@ namespace Celo {
 Buffer::Buffer() : used( 0 ) {
 }
 
-const Buffer::PI8 &Buffer::operator[]( SI64 off ) const {
+const Buffer::UC &Buffer::operator[]( SL off ) const {
     for( const Buffer *b = this; ; b = b->next.ptr() ) {
         if ( off < b->used )
             return b->data[ off ];
@@ -14,7 +14,7 @@ const Buffer::PI8 &Buffer::operator[]( SI64 off ) const {
     }
 }
 
-Buffer::PI8 &Buffer::operator[]( SI64 off ) {
+Buffer::UC &Buffer::operator[]( SL off ) {
     for( Buffer *b = this; ; b = b->next.ptr() ) {
         if ( off < b->used )
             return b->data[ off ];
@@ -22,16 +22,16 @@ Buffer::PI8 &Buffer::operator[]( SI64 off ) {
     }
 }
 
-const Buffer::PI8 *Buffer::ptr( SI64 off ) const {
+const Buffer::UC *Buffer::ptr( SL off ) const {
     return &operator[]( off );
 }
 
-Buffer::PI8 *Buffer::ptr( SI64 off ) {
+Buffer::UC *Buffer::ptr( SL off ) {
     return &operator[]( off );
 }
 
-Buffer::SI64 Buffer::size() const {
-    SI64 res = 0;
+Buffer::SL Buffer::size() const {
+    SL res = 0;
     for( const Buffer *b = this; b; b = b->next.ptr() )
         res += b->used;
     return res;
@@ -40,15 +40,15 @@ Buffer::SI64 Buffer::size() const {
 bool Buffer::empty() const {
     for( const Buffer *b = this; b; b = b->next.ptr() )
         if ( b->used )
-            return true;
-    return false;
+            return false;
+    return true;
 }
 
-Buffer::SI64 Buffer::item_room() const {
+Buffer::SL Buffer::item_room() const {
     return item_size - used;
 }
 
-void Buffer::cut( int off ) {
+void Buffer::cut( SL off ) {
     Ptr<Buffer> t = new Buffer;
 
     t->used = used - off;
@@ -60,12 +60,25 @@ void Buffer::cut( int off ) {
     next = t;
 }
 
-void Buffer::copy_to( PI8 *res ) {
+void Buffer::copy_to( UC *res ) {
     for( const Buffer *b = this; b; b = b->next.ptr() ) {
         memcpy( res, b->data, b->used );
         res += b->used;
     }
 }
 
+void Buffer::skip_some( Ptr<Buffer> &buffer, SL &off_buffer, SL msg_length ) {
+    while ( true ) {
+        if ( not buffer )
+            return;
+        if ( msg_length <= buffer->used - off_buffer ) {
+            off_buffer += msg_length;
+            return;
+        }
+        msg_length -= buffer->used - off_buffer;
+        buffer = buffer->next;
+        off_buffer = 0;
+    }
+}
 
 }
