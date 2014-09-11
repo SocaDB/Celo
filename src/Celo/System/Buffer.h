@@ -52,7 +52,7 @@ public:
     // attributes
     Ptr<Buffer> next;
     int         used;
-    UC         data[ item_size ];
+    UC          data[ item_size ];
 };
 
 }

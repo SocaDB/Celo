@@ -2,8 +2,8 @@
 #define Celo_Events_BufferedConnection_H
 
 #include "../System/Buffer.h"
-#include "Event.h"
 #include <stdlib.h> // for off_t
+#include "Event.h"
 
 namespace Celo {
 namespace Events {

@@ -1,17 +1,23 @@
 #include "SslBufferedConnection.h"
-#include "Internal/SslRemOutput.h"
-#include "../Util/StringHelp.h"
 #include <openssl/err.h>
+#include <sys/sendfile.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+
+
 
 namespace Celo {
 namespace Events {
 
-void ShowCerts( SSL* ssl ) {   X509 *cert;
+void ShowCerts( SSL* ssl ) {
+    X509 *cert;
     char *line;
 
-    cert = SSL_get_peer_certificate(ssl); /* get the server's certificate */
+    cert = SSL_get_peer_certificate( ssl ); /* get the server's certificate */
     if ( cert != NULL )
     {
         printf("Server certificates:\n");
@@ -28,20 +34,17 @@ void ShowCerts( SSL* ssl ) {   X509 *cert;
 }
 
 SslBufferedConnection::SslBufferedConnection( SSL_CTX *ssl_ctx, int fd, bool server ) : Event( fd ) {
-    ssl = SSL_new( ssl_ctx );
-    SSL_set_fd( ssl, fd );
-    if ( server ) {
-        SSL_set_accept_state( ssl ); // handshake will be done by SSL_write and SSL_read
-    } else {
-        SSL_set_connect_state( ssl ); // handshake will be done by SSL_write and SSL_read
-//        if ( SSL_connect( ssl ) == FAIL ) {
-//            ERR_print_errors_fp( stderr );
-//            this->fd = -1;
-//            return;
-//        }
-    }
+    if ( ssl_ctx ) {
+        ssl = SSL_new( ssl_ctx );
+        SSL_set_fd( ssl, fd );
+        if ( server )
+            SSL_set_accept_state ( ssl ); // handshake will be done by SSL_write and SSL_read
+        else
+            SSL_set_connect_state( ssl ); // handshake will be done by SSL_write and SSL_read
 
-    SSL_set_mode( ssl, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER );
+        SSL_set_mode( ssl, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER );
+    } else
+        ssl = 0;
 
     orig_to_write      = 0;
     stop_the_parsing   = false;
@@ -56,7 +59,8 @@ SslBufferedConnection::SslBufferedConnection( VtableOnly vo ) : Event( vo ) {
 SslBufferedConnection::~SslBufferedConnection() {
     if ( orig_to_write )
         free( orig_to_write );
-    SSL_free( ssl );
+    if ( ssl )
+        SSL_free( ssl );
 }
 
 void SslBufferedConnection::write_cst( const char *data, ST size, bool end ) {
@@ -76,7 +80,20 @@ void SslBufferedConnection::write_str( const char *data ) {
 }
 
 void SslBufferedConnection::write_fdd( int fd, ST off, ST len ) {
-    TODO;
+    printf( "TODO: SslBufferedConnection::write_fdd\n" );
+}
+
+void SslBufferedConnection::write_buf( Ptr<Buffer> buf, int off, bool end ) {
+    // loop to remove `off` bytes
+    for( Buffer *b = buf.ptr(); b; off -= b->used, b = b->next.ptr() ) {
+        // we have someting to write ?
+        if ( off < b->used ) {
+            _write_ssl( (const char *)b->data + off, b->used - off, false );
+            while( ( b = b->next.ptr() ) )
+                _write_ssl( (const char *)b->data, b->used, false );
+            return;
+        }
+    }
 }
 
 bool SslBufferedConnection::_still_has_something_to_send() const {
@@ -118,7 +135,25 @@ void SslBufferedConnection::_write_ssl( const char *data, ST size, bool end ) {
 }
 
 void SslBufferedConnection::inp() {
-    ShowCerts( ssl );
+    // not an ssl connection ?
+    if ( not ssl ) {
+        while ( true ) {
+            Ptr<Buffer> buff = new Buffer;
+            buff->used = ::read( fd, buff->data,  buff->item_size );
+            if ( buff->used <= 0 ) {
+                // need a retry or there are more data to come
+                if ( buff->used < 0 and ( errno == EAGAIN or errno == EWOULDBLOCK ) )
+                    return wait_for_more_inp();
+                return hup_error();
+            }
+
+            // parse
+            if ( not parse( buff ) )
+                return;
+        }
+        return;
+    }
+
 
     // need to issue again a SSL_write ?
     if ( w_state == want_to_read ) {
@@ -161,16 +196,19 @@ void SslBufferedConnection::inp() {
 
     // OK for a SSL_read ? (if want_to_write, the SSL_read has to be done during a call to out())
     if ( r_state != want_to_write ) {
-        const int size_buff = 2048;
-        char buff[ size_buff ];
+        Ptr<Buffer> buff = new Buffer;
         while ( true ) {
-            ST ruff = SSL_read( ssl, buff, size_buff );
-            int ecd = SSL_get_error( ssl, ruff );
+            // update or make a new buffer to store the incoming data
+            if ( buff->cpt_use > 1 )
+                buff = new Buffer;
+
+            buff->used = SSL_read( ssl, buff->data, buff->item_size );
+            int ecd = SSL_get_error( ssl, buff->used );
 
             switch ( ecd ) {
             case SSL_ERROR_NONE:
                 r_state = want_nothing;
-                if ( stop_the_parsing or parse( buff, buff + ruff ) == false ) {
+                if ( stop_the_parsing or parse( buff ) == false ) {
                     stop_the_parsing = true;
                     return;
                 }
@@ -193,16 +231,40 @@ void SslBufferedConnection::inp() {
 }
 
 void SslBufferedConnection::out() {
-    if ( r_state == want_to_write ) {
-        const int size_buff = 2048;
-        char buff[ size_buff ];
+    if ( not ssl ) {
         while ( true ) {
-            ST ruff = SSL_read( ssl, buff, size_buff );
-            int error = SSL_get_error( ssl, ruff );
+            ST real = ::send( fd, data_to_write, size_to_write, MSG_NOSIGNAL );
+            if ( real <= 0 ) {
+                if ( real == 0 )
+                    return reg_for_deletion(); // CLOSED !
+                if ( errno == EAGAIN or errno == EWOULDBLOCK )
+                    return; // PLEASE RETRY LATER
+                return reg_for_deletion(); // ERROR !
+            }
+
+            size_to_write -= real;
+            if ( not size_to_write ) {
+                free( orig_to_write );
+                orig_to_write = 0;
+                return; // DONE
+            }
+            data_to_write += real;
+        }
+    }
+
+    if ( r_state == want_to_write ) {
+        Ptr<Buffer> buff = new Buffer;
+        while ( true ) {
+            // update or make a new buffer to store the incoming data
+            if ( buff->cpt_use > 1 )
+                buff = new Buffer;
+
+            buff->used = SSL_read( ssl, buff->data, buff->item_size );
+            int error = SSL_get_error( ssl, buff->used );
 
             if ( error == SSL_ERROR_NONE ) {
                 r_state = want_nothing;
-                if ( stop_the_parsing or parse( buff, buff + ruff ) == false ) {
+                if ( stop_the_parsing or parse( buff ) == false ) {
                     stop_the_parsing = true;
                     break;
                 }

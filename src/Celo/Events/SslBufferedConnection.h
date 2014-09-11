@@ -1,7 +1,9 @@
 #ifndef SSLBUFFEREDCONNECTION_H
 #define SSLBUFFEREDCONNECTION_H
 
+#include "../System/Buffer.h"
 #include <openssl/ssl.h>
+#include <stdlib.h> // for off_t
 #include "Event.h"
 
 namespace Celo {
@@ -13,6 +15,8 @@ namespace Events {
 */
 class SslBufferedConnection : public Event {
 public:
+    typedef long long ST;
+
     SslBufferedConnection( SSL_CTX *ssl_ctx, int fd, bool server = true );
     SslBufferedConnection( VtableOnly );
     ~SslBufferedConnection();
@@ -24,6 +28,8 @@ public:
     virtual void write_str( const char *data );
 
     virtual void write_fdd( int fd, ST off, ST len );
+
+    virtual void write_buf( Ptr<Buffer> buf, int off = 0, bool end = false ); ///< write data from buf. BEWARE, buf will be set to 0 (data is owned by this)
 
 protected:
     virtual void inp();
