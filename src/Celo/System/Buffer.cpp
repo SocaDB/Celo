@@ -67,13 +67,13 @@ void Buffer::copy_to( UC *res ) {
     }
 }
 
-void Buffer::skip_some( Ptr<Buffer> &buffer, SL &off_buffer, SL msg_length ) {
+bool Buffer::skip_some( Ptr<Buffer> &buffer, SL &off_buffer, SL msg_length ) {
     while ( true ) {
         if ( not buffer )
-            return;
+            return msg_length == 0;
         if ( msg_length <= buffer->used - off_buffer ) {
             off_buffer += msg_length;
-            return;
+            return true;
         }
         msg_length -= buffer->used - off_buffer;
         buffer = buffer->next;

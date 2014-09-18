@@ -47,7 +47,7 @@ public:
 
     void copy_to( UC *res );
 
-    static void skip_some( Ptr<Buffer> &buffer, SL &off_buffer, SL msg_length ); ///< update buffer and off_buffer to skip msg_length
+    static bool skip_some( Ptr<Buffer> &buffer, SL &off_buffer, SL msg_length ); ///< update buffer and off_buffer to skip msg_length
 
     // attributes
     Ptr<Buffer> next;
