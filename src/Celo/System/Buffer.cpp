@@ -67,17 +67,32 @@ void Buffer::copy_to( UC *res ) {
     }
 }
 
-bool Buffer::skip_some( Ptr<Buffer> &buffer, SL &off_buffer, SL msg_length ) {
+bool Buffer::skip_some( Ptr<Buffer> &buf, SL &off, SL &end, SL len ) {
     while ( true ) {
-        if ( not buffer )
-            return msg_length == 0;
-        if ( msg_length <= buffer->used - off_buffer ) {
-            off_buffer += msg_length;
+        if ( not buf )
+            return len == 0;
+        if ( len <= std::min( SL( buf->used ), end ) - off ) {
+            off += len;
             return true;
         }
-        msg_length -= buffer->used - off_buffer;
-        buffer = buffer->next;
-        off_buffer = 0;
+        len -= buf->used - off;
+        end -= buf->used;
+        buf = buf->next;
+        off = 0;
+    }
+}
+
+bool Buffer::skip_some( Ptr<Buffer> &buf, SL &off, SL len ) {
+    while ( true ) {
+        if ( not buf )
+            return len == 0;
+        if ( len <= buf->used - off ) {
+            off += len;
+            return true;
+        }
+        len -= buf->used - off;
+        buf = buf->next;
+        off = 0;
     }
 }
 
